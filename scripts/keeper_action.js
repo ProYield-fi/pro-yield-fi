@@ -2,18 +2,30 @@
 const hre = require("hardhat");
 async function main() {
   const [owner] = await hre.ethers.getSigners();
+  for (const s of await hre.ethers.getSigners()) {
+    const origSend = s.sendTransaction.bind(s);
+    s.sendTransaction = async (tx) => {
+      if (tx.gasLimit == null) {
+        try {
+          const est = await hre.ethers.provider.estimateGas({ ...tx, from: s.address });
+          tx = { ...tx, gasLimit: (est * 3n) + 21000n };
+        } catch {}
+      }
+      return origSend(tx);
+    };
+  }
   const V = await hre.ethers.getContractFactory("ProYieldVault");
-  const v = V.attach("0xf6eF0bf814254003A38f6dE513037D6108989b09");
+  const v = V.attach("0x9Bb6d143705B6675720cb81B3241fe878809538b");
   console.log("totalAssets", hre.ethers.formatUnits(await v.totalAssets(), 18), "USDC");
   try {
-    const h = await v.harvest();
+    const h = await v.harvest({ gasLimit: 2_500_000 });
     await h.wait();
     console.log("harvest tx", h.hash);
   } catch (e) {
     console.log("harvest skipped:", (e.reason || e.message).slice(0, 120));
   }
   try {
-    const a = await v.allocate();
+    const a = await v.allocate({ gasLimit: 2_500_000 });
     await a.wait();
     console.log("allocate tx", a.hash);
   } catch (e) {
