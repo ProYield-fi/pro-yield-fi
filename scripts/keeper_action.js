@@ -18,7 +18,7 @@ async function main() {
     };
   }
   const V = await hre.ethers.getContractFactory("ProYieldVault");
-  const v = V.attach("0x7Ae37A362E7f163b00b1E07f0CF7890086904823");
+  const v = V.attach("0xa2604813F90b8f8587B648971FC65242C33d6E3f");
   console.log("totalAssets", hre.ethers.formatUnits(await v.totalAssets(), 18), "USDC");
   try {
     const h = await v.harvest({ gasLimit: 2_500_000 });
