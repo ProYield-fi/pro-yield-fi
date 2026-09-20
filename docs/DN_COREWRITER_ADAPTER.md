@@ -116,6 +116,48 @@ Decision pending owner sign-off on size + validator.
 - `maxActionUsd6` cap per action; `MIN_ORDER_USD6 = 10e6` ($10, HL minimum);
   `perpAsset` single-asset restriction; `paused` kill switch.
 
+## Vault wiring — DNCoreStrategy (2026-09-20)
+
+`contracts/DNCoreStrategy.sol` is the vault-integrated version of the adapter
+pattern (`is BaseStrategy`). The standalone `DNCoreAdapter.sol` remains the
+byte-exact-encoding reference; **consolidate both into a shared execution base
+before the audit**.
+
+### Accounting model (honest-yield discipline)
+
+| Field | Meaning |
+|---|---|
+| `corePrincipal6` | net USDC sent to Core — **never counted as yield** |
+| `coreEquity6` | Core account value, refreshed by `syncCore()` (0x80f read) |
+| `profitRealized` | profit **bridged back** to EVM (amount above remaining principal at bridge-back time) |
+| `profitSwept` | profit already sent to the vault |
+| `bufferBps` | liquidity buffer (default 1500 = 15% of assets stays idle on EVM) |
+
+- Profit on Core = `equity − principal`. `bridgeBackToEvm(amount)` syncs first,
+  then splits: principal first, excess = profit. **Losses realize nothing** —
+  no fake profit paths (mirrors the Sky/Morpho audit fixes).
+- `harvest()` by the **vault** sweeps `min(harvestable, idle − buffer)` as real
+  USDC to the vault (performance fee + share price handled by the vault).
+  By the **keeper** it only syncs (settle, no movement).
+
+### Async recall design
+
+CoreWriter actions are fire-and-forget + delayed seconds, so the strategy
+cannot unwind synchronously inside a vault withdrawal:
+
+1. **Buffer** (15%) covers ordinary recalls instantly — `BaseStrategy.recall`
+   (vault-only) transfers idle balance.
+2. **Larger recalls**: keeper unwinds first (`closeShort` → `moveUsdcToSpot` →
+   `bridgeBackToEvm`), waits ≥1 block + action delay, verifies via `coreState()`,
+   then the vault can recall. If idle is insufficient, the vault withdrawal
+   reverts (correct — cannot pay assets that don't exist).
+
+### Keeper duties (dn_keeper.js)
+
+`syncCore` → funding read → `BRIDGE_PROFIT` (bridge back profit portion) →
+`vault.harvest()` (permissionless) → verify every action after the delay.
+Open/rebalance sizing still needs the allocation-policy hookup (TODO).
+
 ## Test strategy
 
 - **Now (this repo, anvil 8545):** unit tests with mocked CoreWriter + read
