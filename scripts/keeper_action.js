@@ -3,7 +3,7 @@ const hre = require("hardhat");
 async function main() {
   const [owner] = await hre.ethers.getSigners();
   const V = await hre.ethers.getContractFactory("ProYieldVault");
-  const v = V.attach("0x5345448000F2C3ADaE3b7A6945E7E4676fe1D2d6");
+  const v = V.attach("0xadaE15e23b0007de2A85b1F3874332762Bc23bb0");
   console.log("totalAssets", hre.ethers.formatUnits(await v.totalAssets(), 18), "USDC");
   try {
     const h = await v.harvest();
