@@ -2,20 +2,23 @@
 const hre = require("hardhat");
 async function main() {
   const [owner] = await hre.ethers.getSigners();
-  for (const s of await hre.ethers.getSigners()) {
-    const origSend = s.sendTransaction.bind(s);
-    s.sendTransaction = async (tx) => {
+  {
+    const { HardhatEthersSigner } = require("@nomicfoundation/hardhat-ethers/signers");
+    const origSend = HardhatEthersSigner.prototype.sendTransaction;
+    HardhatEthersSigner.prototype.sendTransaction = async function (tx) {
       if (tx.gasLimit == null) {
         try {
-          const est = await hre.ethers.provider.estimateGas({ ...tx, from: s.address });
+          const est = await hre.ethers.provider.estimateGas({ ...tx, from: this.address });
           tx = { ...tx, gasLimit: (est * 3n) + 21000n };
-        } catch {}
+        } catch {
+          tx = { ...tx, gasLimit: 1_000_000n };
+        }
       }
-      return origSend(tx);
+      return origSend.call(this, tx);
     };
   }
   const V = await hre.ethers.getContractFactory("ProYieldVault");
-  const v = V.attach("0x920534D6B83EFEb98075C686cF3f67d83Be6A4E3");
+  const v = V.attach("0x7Ae37A362E7f163b00b1E07f0CF7890086904823");
   console.log("totalAssets", hre.ethers.formatUnits(await v.totalAssets(), 18), "USDC");
   try {
     const h = await v.harvest({ gasLimit: 2_500_000 });
