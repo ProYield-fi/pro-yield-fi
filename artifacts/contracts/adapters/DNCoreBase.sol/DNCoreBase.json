@@ -1,0 +1,707 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "DNCoreBase",
+  "sourceName": "contracts/adapters/DNCoreBase.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "DNCore__BadTif",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__BelowMinNotional",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__Cap",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__NotFlat",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__NotInitialized",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__NotKeeper",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__Paused",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__ReadFailed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__WrongAsset",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__ZeroAmount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__ZeroOrder",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DNCore__ZeroValidator",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReentrancyGuardReentrantCall",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint24",
+          "name": "actionId",
+          "type": "uint24"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "ActionSent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "validator",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "weiAmount",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "undelegate",
+          "type": "bool"
+        }
+      ],
+      "name": "Delegated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "maxActionUsd6",
+          "type": "uint256"
+        }
+      ],
+      "name": "MaxActionSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint32",
+          "name": "asset",
+          "type": "uint32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint128",
+          "name": "cloid",
+          "type": "uint128"
+        }
+      ],
+      "name": "OrderCancelled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint32",
+          "name": "asset",
+          "type": "uint32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "isBuy",
+          "type": "bool"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "reduceOnly",
+          "type": "bool"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "limitPx",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "sz",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "tif",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint128",
+          "name": "cloid",
+          "type": "uint128"
+        }
+      ],
+      "name": "OrderSent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "paused",
+          "type": "bool"
+        }
+      ],
+      "name": "PausedSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint32",
+          "name": "perpAsset",
+          "type": "uint32"
+        }
+      ],
+      "name": "PerpAssetSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "weiAmount",
+          "type": "uint64"
+        }
+      ],
+      "name": "StakeDeposited",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "weiAmount",
+          "type": "uint64"
+        }
+      ],
+      "name": "StakeWithdrawn",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "MIN_ORDER_USD6",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint32",
+          "name": "asset",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint128",
+          "name": "cloid",
+          "type": "uint128"
+        }
+      ],
+      "name": "cancelOrderByCloid",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint32",
+          "name": "asset",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint64",
+          "name": "limitPx",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "sz",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint8",
+          "name": "tif",
+          "type": "uint8"
+        }
+      ],
+      "name": "closeShort",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "coreAccountExists",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "validator",
+          "type": "address"
+        },
+        {
+          "internalType": "uint64",
+          "name": "weiAmount",
+          "type": "uint64"
+        },
+        {
+          "internalType": "bool",
+          "name": "undelegate",
+          "type": "bool"
+        }
+      ],
+      "name": "delegateHype",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "marginSummary",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "int64",
+              "name": "accountValue",
+              "type": "int64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "marginUsed",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "ntlPos",
+              "type": "uint64"
+            },
+            {
+              "internalType": "int64",
+              "name": "rawUsd",
+              "type": "int64"
+            }
+          ],
+          "internalType": "struct DNCoreBase.AccountMarginSummary",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "markPx",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxActionUsd6",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "ntl",
+          "type": "uint64"
+        }
+      ],
+      "name": "moveUsdcToPerp",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "ntl",
+          "type": "uint64"
+        }
+      ],
+      "name": "moveUsdcToSpot",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint32",
+          "name": "asset",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint64",
+          "name": "limitPx",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "sz",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint8",
+          "name": "tif",
+          "type": "uint8"
+        }
+      ],
+      "name": "openShort",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "oraclePx",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "perpAsset",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "perpSzDecimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "position",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "int64",
+              "name": "szi",
+              "type": "int64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "entryNtl",
+              "type": "uint64"
+            },
+            {
+              "internalType": "int64",
+              "name": "isolatedRawUsd",
+              "type": "int64"
+            },
+            {
+              "internalType": "uint32",
+              "name": "leverage",
+              "type": "uint32"
+            },
+            {
+              "internalType": "bool",
+              "name": "isIsolated",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct DNCoreBase.Position",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "maxActionUsd6_",
+          "type": "uint256"
+        }
+      ],
+      "name": "setMaxActionUsd6",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "paused_",
+          "type": "bool"
+        }
+      ],
+      "name": "setPaused",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint32",
+          "name": "perpAsset_",
+          "type": "uint32"
+        }
+      ],
+      "name": "setPerpAsset",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "weiAmount",
+          "type": "uint64"
+        }
+      ],
+      "name": "stakeHype",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "weiAmount",
+          "type": "uint64"
+        }
+      ],
+      "name": "withdrawStake",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdrawable",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
