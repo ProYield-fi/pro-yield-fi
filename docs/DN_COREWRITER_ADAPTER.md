@@ -158,6 +158,30 @@ cannot unwind synchronously inside a vault withdrawal:
 `vault.harvest()` (permissionless) → verify every action after the delay.
 Open/rebalance sizing still needs the allocation-policy hookup (TODO).
 
+## Production read verification (2026-09-20)
+
+Every read precompile verified against LIVE HyperEVM mainnet with read-only
+`eth_call`s — no keys, no funds, no HyperEVM deployments
+(`scripts/dn_realread_check.js` + `contracts/mocks/DecodeVerifier.sol`, which
+runs the contract's own struct decode locally on anvil against the raw
+production bytes):
+
+- **0x80a perpAssetInfo**: wrapped 1-tuple layout CONFIRMED on-chain
+  (`[0x20][0xa0][mt][szDec][maxLev][oi][len]["BTC"]`). BTC: szDec 5, maxLev 40,
+  marginTable 56; ETH: 4/25/55. Both JS and Solidity decodes agree.
+- **0x80f accountMarginSummary takes `(uint32 perpDexIndex, address user)` —
+  TWO args.** The original single-arg encode reverted on mainnet for every
+  address; the old catch-all mocks could not catch it. Fixed in strategy +
+  adapter. Mocks now ASSERT calldata shapes (`require(_data.length == N)`).
+  With `(0, user)`: zeros for empty accounts; HLP vault decodes to $47.07M.
+- **0x810 coreUserExists discriminates** (never-seen address → false) — the
+  drop-prevention gate works. Note: our deployer + the zero address already
+  exist on Core; a fresh strategy contract is false until its first bridge-in.
+- 0x813 / 0x803 / 0x806 / 0x807 decode verified against real data.
+- Newer capabilities noted from HLConstants (future options): BORROW_LEND
+  action 15 + 0x811/0x812 precompiles (borrow/lend ON CORE — another yield
+  source), SET_ABSTRACTION action 16, BBO precompile 0x80e (keeper pricing).
+
 ## Test strategy
 
 - **Now (this repo, anvil 8545):** unit tests with mocked CoreWriter + read
