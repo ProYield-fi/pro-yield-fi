@@ -71,9 +71,15 @@ Real numbers (testnet sandbox, 4 recycled runs): **181.47 USDC** recycled → in
 | Repo build (launch set) | sandbox + testnet rehearsal | 10% perf (settable) | Yes — FD → recycler 60/20/20, ledgered |
 | Deployed demo generation | HyperEVM testnet | 0.5% exit + 1% perf → collector `0xA6c93FeD…` | No — collector interface differs from the repo FD; funds accumulate |
 
-## 7. Open decisions
+## 7. Decisions (recorded 2026-09-23)
 
-1. **Which fee model ships**: repo build (10% of profit, no exit fee) vs deployed-demo style
-   (0.5% exit + 1% perf). Recommendation: ship the repo build, set the perf fee per the site copy
-   ("0% during early access" → set 0 at launch, raise later with notice), keep exit free.
-2. If instead an exit fee is kept, update the site's Fee Transparency copy to disclose it plainly.
+1. **Fee model: RESOLVED — the repo build's model ships.** Performance fee **10% of profits only**
+   (charged only when the vault is up); **no deposit fee, no exit fee, no management fee**.
+   Rationale: it beats the demo generation's model (1% perf + 0.5% exit) at any turnover below
+   ~1.8× TVL/yr, and an exit fee would literally violate the published "never a fee on principal"
+   promise for anyone who exits flat. The site's fee surfaces (dashboard Fee Transparency, landing
+   FAQ, token Revenue Sharing + Our Commitments) were updated to state this concretely and
+   deployed 2026-09-23.
+2. The 0.5% exit fee observed on-chain is a demo-generation artifact only; the launch set (repo
+   build) never charges it.
+3. Fee % and the 60/20/20 split remain owner-settable — revisit at launch if desired.
