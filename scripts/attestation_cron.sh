@@ -7,6 +7,9 @@ set -euo pipefail
 cd /home/user/hypervault
 node scripts/attestation.js --publish
 
+# Daily per-user portfolio snapshots (growth-chart backstop) — honest gaps on failure
+node scripts/portfolio_snapshots.js >> "$HOME/.hermes/logs/portfolio_snapshots.log" 2>&1 || true
+
 # hypervault: commit attestations/ only
 if ! git diff --quiet -- attestations/ || [ -n "$(git ls-files --others --exclude-standard attestations/)" ]; then
   git add attestations/

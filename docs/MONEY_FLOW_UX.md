@@ -117,8 +117,9 @@ never a second chart.
 - **Phase A (next):** `MoneyFlowRibbon` on the dashboard — nodes ①–③ live today, ④–⑥ as honest
   `ahead` chips. Replaces the confusing deposit hero.
 - **Phase B (merged — see §2):** enhance the existing PortfolioChart into the "watch it grow"
-  card — one chart + ticker/streak/milestones — once the per-user snapshot job exists (works
-  on the testnet demo balance first).
+  card — one chart + ticker/streak/milestones. **[Part 1 shipped 2026-09-24]** daily per-user
+  snapshots live (D1 `portfolio_snapshots`: write-on-read + box-cron backstop) and the chart
+  now prefers the snapshot series with a today-ticker and a tracking-since line.
 - **Phase C:** flip ④–⑥ to `active` at mainnet vault launch (audit gate).
 
 ## 5. Acceptance checks (when built)
