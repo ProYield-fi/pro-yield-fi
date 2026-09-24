@@ -25,3 +25,11 @@ CA$30 + CA$5 purchase. Each segment is marked tested / in-progress / queued.*
 - Test wallet only; keys 0600 on the ops box (user phone holds backup for the Safes).
 - Never mainnet *product contracts* before the audit locks — venue-side money movement only (this ledger).
 - Every segment ends with an independent readback (tx hash / API balance / receipt file), never a self-report.
+
+## Open workstreams (from owner feedback 2026-09-24)
+
+1. **Dashboard audit + UX redesign** — section-by-section correctness pass on the live dashboard, then redesign: single "Your money" story (kills the deposit-$0-vs-wallet-$24.61 confusion), **money-flow diagram** (card → on-ramp → wallet → vault → blue-chip lending → interest back), gamified growth ("watch it grow": real accrual history snapshot job, daily earnings, streaks/milestones — savings-app tone, sourced numbers only, no casino mechanics).
+   - Known findings so far: (a) signed-in venue table prefers the sparse API rows over sourced public rates → blank chain/TVL/APY + raw slugs; (b) PortfolioChart says "Connect your account" even when connected with no deposits; (c) "Market Context: no-trading / Health: N/A" jargon reads as broken.
+2. **Gas drip = single-purchase on-ramp** — buy USDC only; app sends ~0.0003 ETH (≈$0.05–0.80; Arbitrum tx ≈ $0.001–0.02 at 0.02 gwei) to the user's wallet so the HL bridge + vault txs never need a second purchase. Caps: one drip per unique wallet, after first on-ramp, budget-capped. HL trading itself needs **zero** gas.
+3. **On-ramp mints for the account wallet** — today's buy used the test key; finished flow mints the widget session for the signed-in account's wallet.
+4. **Auth/session security audit** (queued by owner) — cookie/expiry, no key material, rate limits, no account enumeration.
