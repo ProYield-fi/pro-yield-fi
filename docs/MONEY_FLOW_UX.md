@@ -18,12 +18,12 @@ with a live number and a state chip. The active node carries the *next action*.
 
 ```
 ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
-│ ① Card / │ → │ ② On-ramp │ → │ ③ Your    │ → │ ④ Vault   │ → │ ⑤ Blue-  │ → │ ⑥ Interest│
-│   bank   │   │  (Coinbase│   │  wallet   │   │  deposit  │   │ chip lend │   │  back to  │
-│          │   │  delivers)│   │           │   │           │   │  venues   │   │  you      │
+│ ① Card / │ → │ ② On-ramp │ → │ ③ Your    │ → │ ④ Vault   │ → │ ⑤ How it  │ → │ ⑥ Interest│
+│   bank   │   │  (Coinbase│   │  wallet   │   │  deposit  │   │  earns    │   │  back to  │
+│          │   │  delivers)│   │           │   │           │   │ core + DN │   │  you      │
 └──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘
-   done ✓        done ✓          $24.61        opens with      Aave/Sky/     +$0.0x/day
-                                ACTIVE         early access    Morpho         (when live)
+   done ✓        done ✓          $24.61        opens with      lending +      +$0.0x/day
+                                ACTIVE         early access    DN sleeve      (when live)
 ```
 
 Node contract (states: `done` · `active` · `ahead` · `locked`):
@@ -34,7 +34,7 @@ Node contract (states: `done` · `active` · `ahead` · `locked`):
 | ② On-ramp | USDC delivered | Arbitrum USDC balance | done when > 0 |
 | ③ Your wallet | wallet total | /api/portfolio (HyperCore + spot + Arb) | active (money sits here) |
 | ④ Vault deposit | vault share balance | /api/portfolio → vault read | `opens with early access` chip until mainnet-at-audit; testnet demo separate |
-| ⑤ Lending venues | venue mix + rates | rates.json (sourced) | ahead |
+| ⑤ How it earns | core lending mix + rates; DN sleeve when funded | rates.json + vault reads (sourced) | ahead |
 | ⑥ Interest back to you | daily accrual | vault share-price series | ahead |
 
 Rules:
@@ -45,6 +45,31 @@ Rules:
 - **The $0.00 fix:** the ribbon replaces the standalone "Your Deposit $0.00" hero. Money that is
   real shows on node ③; the vault node shows a state chip, not a fake zero balance.
 - Numbers update on the existing 30 s poll; failed reads → `—` + named source (standing rule).
+
+### Taxonomy — DN is a sleeve, NOT "lending" (owner check 2026-09-24)
+
+"Blue-chip lending" means exactly that: being a lender to borrowers on Aave/Sky/Morpho-style
+venues. The **delta-neutral (DN) sleeve is not lending** — it harvests funding rates via spot +
+an offsetting perp short on Hyperliquid: market-neutral, but derivatives, with venue/execution
+risk of its own. The product separates them on purpose:
+
+- the core promise "no trading, no leverage" stays literally true **for the principal**;
+- the DN sleeve is a capped, separately-labeled module, funded at launch per the attack-surface
+  plan ("last thing added, first thing unwound") — never folded into the lending number;
+- UI rule: wherever DN appears it appears under its own name ("market-neutral funding sleeve"),
+  with "not lending" stated wherever there is room.
+
+### CTA rules — state-derived, never a fixed "next step"
+
+The ribbon's CTA is computed from account state; a hardcoded CTA line is a bug:
+
+| State | CTA |
+|---|---|
+| Anonymous | "Sign in to start" |
+| Signed in, no linked wallet | "Link your wallet (read-only) to light this up" |
+| Linked, empty wallet | "Buy USDC — one purchase covers gas" (on-ramp) |
+| Linked, funded, vault closed | "Your money is live" + "Get Early Access" |
+| Linked, funded, vault open | "Move to vault" (the single primary action) |
 
 ## 2. The growth card ("watch it grow")
 
