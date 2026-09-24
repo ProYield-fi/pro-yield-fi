@@ -6,13 +6,21 @@ Status of the accounts (checked from the box, 2026-09-24):
 |---|---|---|
 | X | `@ProYieldFi` | EXISTS — 0 followers, never used. Site link OK. |
 | Telegram | `@ProYieldFi` (channel "Pro Yield") | EXISTS — 1 subscriber. Site link OK. Bot NOT yet admin → agent can't post yet. |
-| Discord | `discord.gg/kw3n7Fah` | **DEAD (Unknown Invite)** — link removed from the site this session. Deferred until there's real traffic to moderate. |
+| LinkedIn | `company/proyield-fi` | FREE (verified) — to claim |
+| Instagram | `@proyield.fi` | FREE (verified) — to claim |
+| Reddit | `u/ProYieldFi` | likely free (check at signup) — to claim |
+| Discord | "Pro Yield" server | not created yet — deferred (old invite was dead; link removed from site) |
 
-## Recommendation: two platforms now (X + Telegram), Discord later
+**Full setup steps, paste-ready bios and the automation matrix: `docs/SOCIAL_SETUP_RUNBOOK.md`.**
 
-- **X = announcements + public track record.** Daily attestation posts + weekly recaps. This is the main discoverability surface.
-- **Telegram = the same announcements, mirrored** (public channel, read-only). Zero moderation burden.
-- **Discord = later.** It costs moderation attention we don't have yet; re-add the link when cohort 1 has actual users asking for a chat space.
+## Recommendation: five surfaces before broadcast (X, TG, LinkedIn, IG, Reddit), Discord after
+
+- **X + Telegram = the live feed.** Daily attestation posts + weekly recaps; Telegram mirrors X. Zero moderation burden.
+- **LinkedIn = credibility surface** for the professional/audit audience (company page, verified info, community-audit call).
+- **Instagram = presence/visual** — thin for a B2C-DeFi product, but the name should exist before noise starts (impersonation defense).
+- **Reddit = the account that can engage** in relevant threads once it has age; its first real job is the community audit (issue #1).
+- **Discord = after cohort 1 exists.** It costs moderator attention; re-add the site link when there are actual users asking for a chat space.
+- **Name-consistency rule:** every platform either `ProYieldFi` (no dots allowed) or `proyield.fi` (dots allowed) — never variants like "proyield_official".
 
 ## The two things only you can do (phone, ~10 minutes total)
 
