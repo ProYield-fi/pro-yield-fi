@@ -2,8 +2,9 @@
 /**
  * ProYield daily attestation generator.
  *
- * Reads LIVE chain state — the product vault (HyperEVM testnet today; flips to
- * mainnet by config when the audited vault ships) plus real venue positions
+ * Reads LIVE chain state — the product vault (HyperEVM MAINNET since
+ * 2026-09-24; the PRODUCT config block below is the per-deployment flip point)
+ * plus real venue positions
  * (Arbitrum wallet + Hyperliquid clearinghouse) — and emits a dated,
  * machine-readable JSON report + a human Markdown report + a one-line series
  * entry for charts.
@@ -30,17 +31,17 @@ const SITE_OUT = path.join(os.homedir(), "websites", "pro-yield-web", "public", 
 
 // ── Config (addresses mirror deployed_addresses.json — update there first) ──
 const PRODUCT = {
-  name: "hyperevm-testnet",
-  chainId: 998,
-  rpc: "https://rpc.hyperliquid-testnet.xyz/evm",
-  vault: "0x42237e98aD8918401F898cb453ef714B64e5B3Bf",
-  asset: "0x8954a73Bb36D17e4B212137Eb7B2328A1A14D1C1",
-  feeCollector: "0xA6c93FeD858b636eE1D5d354C7BC00506Ff7898d",
-  insurance: "0xFDF3269972DFe490E5c6DF3A0b9eeC6C3a272d88",
-  treasury: "0xF1DF28c308b6554396742C9863F93f27401e2F60",
-  keeper: "0xB59226930edeF5bAFA8E802B03AEd03feA726DE2",
-  maybeFeeDistributor: "0x874d5171A6E2F681511e7328A13De563158962ce",
-  note: "Testnet demo deployment. Mainnet vault deploys only after the external audit.",
+  name: "hyperevm-mainnet",
+  chainId: 999,
+  rpc: "https://rpc.hyperliquid.xyz/evm",
+  vault: "0xadaE15e23b0007de2A85b1F3874332762Bc23bb0",
+  asset: "0xb88339CB7199b77E23DB6E890353E22632Ba630f", // Circle-native USDC
+  feeCollector: null, // this revision routes fees via the FeeDistributor; no feeCollector getter
+  insurance: "0x091a1cFE247A041d400B6Fd57c14A652Bb865f67",
+  treasury: "0x8A1b107e1DDabC868E40b8718F09537B0A50C9aB",
+  keeper: null, // no keeper configured at the team stage
+  maybeFeeDistributor: "0xAa67940672047EcE44db2876378b182C1Fc4217C",
+  note: "HyperEVM mainnet — guarded capped beta (TVL cap $500, caps in code). Team E2E round trip passed 2026-09-24; ownership = 2-of-3 treasury Safe.",
 };
 const VENUES = {
   wallet: "0x8377870974df41DB4aaa67a842781227390167a9",
@@ -59,6 +60,7 @@ const VAULT_ABI = [
   "function totalSupply() view returns (uint256)",
   "function convertToAssets(uint256 shares) view returns (uint256)",
   "function asset() view returns (address)",
+  "function underlying() view returns (address)",
   "function performanceFee() view returns (uint256)",
   "function withdrawalFee() view returns (uint256)",
   "function withdrawFeeBps() view returns (uint256)",
@@ -148,11 +150,14 @@ async function main() {
       withdraw_fee_a: await seek("withdrawalFee", () => vault.withdrawalFee()),
       withdraw_fee_b: await seek("withdrawFeeBps", () => vault.withdrawFeeBps()),
       asset_addr: await seek("asset()", () => vault.asset()),
+      asset_addr_b: await seek("underlying()", () => vault.underlying()),
       fd_addr: await seek("feeDistributor()", () => vault.feeDistributor()),
       collector_addr: await seek("feeCollector()", () => vault.feeCollector()),
       insurance_balance: await seek("insurance bal", () => asset.balanceOf(PRODUCT.insurance)),
       treasury_balance: await seek("treasury bal", () => asset.balanceOf(PRODUCT.treasury)),
-      keeper_balance: await seek("keeper bal", () => asset.balanceOf(PRODUCT.keeper)),
+      keeper_balance: PRODUCT.keeper
+        ? await seek("keeper bal", () => asset.balanceOf(PRODUCT.keeper))
+        : { ok: false, error: "no keeper configured on this deployment" },
     };
 
     const get = (k) => reads[k];
@@ -182,7 +187,11 @@ async function main() {
         : get("withdraw_fee_b").ok
           ? Number(get("withdraw_fee_b").value)
           : null,
-      asset_token: get("asset_addr").ok ? get("asset_addr").value : PRODUCT.asset,
+      asset_token: get("asset_addr").ok
+        ? get("asset_addr").value
+        : get("asset_addr_b").ok
+          ? get("asset_addr_b").value
+          : PRODUCT.asset,
       asset_decimals: decimals,
     };
 
@@ -193,7 +202,9 @@ async function main() {
         ? get("collector_addr").value
         : PRODUCT.maybeFeeDistributor;
     const fdBal = await seek("fd bal", () => asset.balanceOf(fdAddr));
-    const collectorBal = await seek("collector bal", () => asset.balanceOf(PRODUCT.feeCollector));
+    const collectorBal = PRODUCT.feeCollector
+      ? await seek("collector bal", () => asset.balanceOf(PRODUCT.feeCollector))
+      : { ok: false, error: "no feeCollector on this revision" };
     product.balances = {
       fee_destination: fdBal.ok ? toNum(fdBal.value, decimals) : null,
       fee_destination_addr: fdAddr,
@@ -203,10 +214,10 @@ async function main() {
       keeper: num("keeper_balance"),
     };
     if (!fdBal.ok) unavailable.push({ field: "product.fee_destination_bal", source: PRODUCT.rpc, error: fdBal.error });
-    if (!collectorBal.ok) unavailable.push({ field: "product.fee_collector_bal", source: PRODUCT.rpc, error: collectorBal.error });
-    // Coverage only when the insurance destination is actually funded — a
-    // zeroed destination on the testnet demo must read as "not yet funded",
-    // not as "0× coverage".
+    if (PRODUCT.feeCollector && !collectorBal.ok)
+      unavailable.push({ field: "product.fee_collector_bal", source: PRODUCT.rpc, error: collectorBal.error });
+    // Coverage only when the insurance destination is actually funded — an
+    // empty insurance Safe must read as "not yet funded", not as "0× coverage".
     const ins = product.balances.insurance_multisig;
     product.coverage = {
       formula: "insurance_multisig ÷ vault total assets",
@@ -216,7 +227,7 @@ async function main() {
           : null,
       note:
         ins === 0
-          ? "insurance destination not yet funded on this testnet deployment — the 60/20/20 recycling writes to it when product operations run"
+          ? "insurance Safe not yet funded — funded from the fee stream (20% slice) once product fees activate"
           : undefined,
     };
 
@@ -228,6 +239,9 @@ async function main() {
       "withdraw_fee_a",
       "total_shares",
       "performance_fee",
+      "keeper_balance",
+      "asset_addr",
+      "asset_addr_b",
     ]);
     for (const [k, r] of Object.entries(reads)) {
       if (!r.ok && !ALT_PROBES.has(k)) {
@@ -297,7 +311,7 @@ async function main() {
         .filter(Boolean)
         .join(" · ") + " · every figure chain-read, sources named — pyd.fi/transparency (raw: pyd.fi/attestations/latest.md)",
     weekly:
-      `ProYield week ${date}: the vault is deployed on HyperEVM testnet and every decision we make is being exercised in the open — deposits, fee recycling (60/20/20), coverage and share price tracked daily. ` +
+      `ProYield week ${date}: the vault is LIVE on HyperEVM mainnet under a guarded capped beta — caps enforced in code, team end-to-end deposit/withdraw passed, and every figure tracked in the open, read from chain. ` +
       `Live numbers, named sources, no projections: pyd.fi/transparency`,
   };
 
@@ -343,6 +357,7 @@ async function main() {
   lines.push(
     JSON.stringify({
       date,
+      chain_id: PRODUCT.chainId,
       total_assets_usdc: tvl,
       share_price_usdc: spx == null ? null : Number(spx.toFixed(6)),
       insurance_usdc: product.balances?.insurance_multisig ?? null,
@@ -401,7 +416,7 @@ function renderMarkdown(r) {
 | Fee destination | ${v(b.fee_destination)} USDC | \`${b.fee_destination_addr ?? "—"}\` (from contract) |
 | Insurance multisig | ${v(b.insurance_multisig)} USDC | \`${p.insurance}\` |
 | Treasury multisig | ${v(b.treasury_multisig)} USDC | \`${p.treasury}\` |
-| Keeper | ${v(b.keeper)} USDC | \`${p.keeper}\` |
+| Keeper | ${v(b.keeper)} USDC | ${p.keeper ? "`" + p.keeper + "`" : "— (none configured at the team stage)"} |
 | Coverage | ${p.coverage?.ratio == null ? "not yet funded" : p.coverage.ratio.toFixed(3) + "×"} | ${p.coverage?.formula ?? "n/a"}${p.coverage?.note ? " — " + p.coverage.note : ""} |
 
 RPC: \`${p.rpc}\` · ${p.note}
