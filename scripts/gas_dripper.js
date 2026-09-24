@@ -23,7 +23,7 @@ const MAX_PER_RUN = Number(process.env.MAX_PER_RUN || 5);
 const RUN = process.env.RUN === "1";
 const KEY_FILE =
   process.env.DRIP_KEY_FILE || path.join(os.homedir(), ".hermes", "vault_keys", "gas_dripper.json");
-const RPCS = ["https://arbitrum-one-rpc.publicnode.com", "https://arb1.arbitrum.io/rpc"];
+const RPCS = ["https://arb1.arbitrum.io/rpc", "https://arbitrum-one-rpc.publicnode.com"];
 const DB = process.env.D1_DB || "pro-yield-db";
 const SITE_DIR = path.join(os.homedir(), "websites", "pro-yield-web");
 
@@ -58,21 +58,20 @@ async function main() {
   let provider = null;
   for (const url of RPCS) {
     try {
-      const p = new ethers.JsonRpcProvider(url);
-      const net = await p.getNetwork();
-      if (Number(net.chainId) === 42161) {
-        provider = p;
-        break;
-      }
-      console.error(`rpc ${url} is chain ${net.chainId}, not Arbitrum — skipping`);
+      // Static chain id + block-number probe (see arb_send_eth.js for why).
+      const p = new ethers.JsonRpcProvider(url, 42161);
+      await p.getBlockNumber();
+      provider = p;
+      break;
     } catch (e) {
-      console.error(`rpc ${url} failed: ${e.message}`);
+      console.error(`rpc ${url} failed: ${String(e.message).slice(0, 100)}`);
     }
   }
   if (!provider) {
     console.error("no usable Arbitrum RPC");
     process.exit(1);
   }
+  const signer = wallet.connect(provider);
 
   const pending = d1(
     `SELECT id, address FROM gas_requests WHERE status='pending' ORDER BY id LIMIT ${MAX_PER_RUN}`
@@ -84,7 +83,7 @@ async function main() {
   const amount = ethers.parseEther(DRIP_ETH);
   const feeData = await provider.getFeeData();
   const gasPrice = feeData.gasPrice || ethers.parseUnits("0.1", "gwei");
-  const perDripCost = amount + 21000n * gasPrice;
+  const perDripCost = amount + 30000n * gasPrice;
   const margin = ethers.parseEther("0.0001");
 
   let sent = 0;
@@ -96,24 +95,27 @@ async function main() {
     console.log(`${RUN ? "SENDING" : "DRY RUN"}: ${DRIP_ETH} ETH → ${row.address} (id ${row.id})`);
     if (!RUN) continue;
     try {
-      const tx = await wallet.sendTransaction({
+      const tx = await signer.sendTransaction({
         to: row.address,
         value: amount,
-        gasLimit: 21000,
-        gasPrice,
       });
       console.log(`  tx ${tx.hash}`);
-      const rc = await tx.wait(1);
-      if (rc && rc.status === 1) {
-        d1(
-          `UPDATE gas_requests SET status='done', tx_hash='${tx.hash}', ` +
-            `processed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=${row.id}`
-        );
-        console.log("  confirmed ✓");
-        sent++;
-      } else {
-        console.error("  tx not successful");
+      let ok = false;
+      try {
+        const rc = await tx.wait(1);
+        ok = rc?.status === 1;
+      } catch (e) {
+        console.error(`  receipt check failed: ${String(e.message).slice(0, 120)}`);
       }
+      // Never leave a SENT drip as 'pending' (it would re-send next run) —
+      // record 'sent_unconfirmed' for manual follow-up instead.
+      const status = ok ? "done" : "sent_unconfirmed";
+      d1(
+        `UPDATE gas_requests SET status='${status}', tx_hash='${tx.hash}', ` +
+          `processed_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=${row.id}`
+      );
+      console.log(`  marked ${status}`);
+      if (ok) sent++;
     } catch (e) {
       console.error(`  send failed: ${e.message}`);
     }

@@ -14,7 +14,7 @@ const KEY_FILE = (process.env.FROM_KEY_FILE || "").replace(/^~/, os.homedir());
 const TO = process.env.TO || "";
 const AMOUNT = process.env.AMOUNT_ETH || "0.0004";
 const RUN = process.env.RUN === "1";
-const RPCS = ["https://arbitrum-one-rpc.publicnode.com", "https://arb1.arbitrum.io/rpc"];
+const RPCS = ["https://arb1.arbitrum.io/rpc", "https://arbitrum-one-rpc.publicnode.com"];
 
 (async () => {
   if (!KEY_FILE || !fs.existsSync(KEY_FILE)) throw new Error(`no key file: ${KEY_FILE}`);
@@ -25,16 +25,18 @@ const RPCS = ["https://arbitrum-one-rpc.publicnode.com", "https://arb1.arbitrum.
   let provider = null;
   for (const u of RPCS) {
     try {
-      const p = new ethers.JsonRpcProvider(u);
-      if (Number((await p.getNetwork()).chainId) === 42161) {
-        provider = p;
-        break;
-      }
+      // Static chain id: skips live network detection (dead hosts otherwise
+      // retry-forever); a block-number probe proves the RPC actually answers.
+      const p = new ethers.JsonRpcProvider(u, 42161);
+      await p.getBlockNumber();
+      provider = p;
+      break;
     } catch (_) {
       /* try next */
     }
   }
   if (!provider) throw new Error("no usable Arbitrum RPC");
+  const signer = w.connect(provider);
 
   const bal = await provider.getBalance(w.address);
   const value = ethers.parseEther(AMOUNT);
@@ -44,10 +46,14 @@ const RPCS = ["https://arbitrum-one-rpc.publicnode.com", "https://arb1.arbitrum.
     console.log("dry run — RUN=1 to send");
     return;
   }
-  const tx = await w.sendTransaction({ to: TO, value, gasLimit: 21000 });
+  const tx = await signer.sendTransaction({ to: TO, value });
   console.log("tx:", tx.hash);
-  const rc = await tx.wait(1);
-  console.log("status:", rc.status, "| block:", rc.blockNumber);
+  try {
+    const rc = await tx.wait(1);
+    console.log("status:", rc.status, "| block:", rc.blockNumber);
+  } catch (e) {
+    console.error("receipt check failed (tx may still confirm):", String(e.message).slice(0, 140));
+  }
   console.log("new balance:", ethers.formatEther(await provider.getBalance(w.address)));
 })().catch((e) => {
   console.error("error:", e.message);
