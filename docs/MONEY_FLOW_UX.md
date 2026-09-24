@@ -94,6 +94,15 @@ Gamification guardrails (hard rules):
 - Every milestone maps to a real money event; every number opens to its source on hover/click.
 - Tone: calm savings-app ("watch it grow"), never casino.
 
+### Merge decision (owner question 2026-09-24)
+
+*"Isn't the growth card the same as the portfolio value card?"* — Partly yes, and two charts
+would be duplication. The existing PortfolioChart is the **ledger** (your value over time);
+the growth elements (today-ticker, streak, milestones) are the **motivational layer** on top.
+**Decision: merge.** Phase B enhances the EXISTING PortfolioChart card — one value line, with
+the ticker/streak/milestones around it, reusing its honest empty state pre-deposit. There is
+never a second chart.
+
 ## 3. Data plumbing
 
 | Need | Have | Add |
@@ -107,8 +116,9 @@ Gamification guardrails (hard rules):
 
 - **Phase A (next):** `MoneyFlowRibbon` on the dashboard — nodes ①–③ live today, ④–⑥ as honest
   `ahead` chips. Replaces the confusing deposit hero.
-- **Phase B:** growth card per-user line once snapshot job exists (works on testnet demo
-  balance first).
+- **Phase B (merged — see §2):** enhance the existing PortfolioChart into the "watch it grow"
+  card — one chart + ticker/streak/milestones — once the per-user snapshot job exists (works
+  on the testnet demo balance first).
 - **Phase C:** flip ④–⑥ to `active` at mainnet vault launch (audit gate).
 
 ## 5. Acceptance checks (when built)
