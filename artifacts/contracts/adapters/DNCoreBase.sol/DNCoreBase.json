@@ -64,11 +64,6 @@
       "type": "error"
     },
     {
-      "inputs": [],
-      "name": "DNCore__ZeroValidator",
-      "type": "error"
-    },
-    {
       "inputs": [
         {
           "internalType": "address",
@@ -112,31 +107,6 @@
         }
       ],
       "name": "ActionSent",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "validator",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint64",
-          "name": "weiAmount",
-          "type": "uint64"
-        },
-        {
-          "indexed": false,
-          "internalType": "bool",
-          "name": "undelegate",
-          "type": "bool"
-        }
-      ],
-      "name": "Delegated",
       "type": "event"
     },
     {
@@ -316,32 +286,6 @@
       "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint64",
-          "name": "weiAmount",
-          "type": "uint64"
-        }
-      ],
-      "name": "StakeDeposited",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint64",
-          "name": "weiAmount",
-          "type": "uint64"
-        }
-      ],
-      "name": "StakeWithdrawn",
-      "type": "event"
-    },
-    {
       "inputs": [],
       "name": "MIN_ORDER_USD6",
       "outputs": [
@@ -352,24 +296,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint32",
-          "name": "asset",
-          "type": "uint32"
-        },
-        {
-          "internalType": "uint128",
-          "name": "cloid",
-          "type": "uint128"
-        }
-      ],
-      "name": "cancelOrderByCloid",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -411,29 +337,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "validator",
-          "type": "address"
-        },
-        {
-          "internalType": "uint64",
-          "name": "weiAmount",
-          "type": "uint64"
-        },
-        {
-          "internalType": "bool",
-          "name": "undelegate",
-          "type": "bool"
-        }
-      ],
-      "name": "delegateHype",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -484,19 +387,6 @@
           "internalType": "struct DNCoreBase.AccountMarginSummary",
           "name": "",
           "type": "tuple"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "markPx",
-      "outputs": [
-        {
-          "internalType": "uint64",
-          "name": "",
-          "type": "uint64"
         }
       ],
       "stateMutability": "view",
@@ -730,19 +620,6 @@
     {
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "maxActionUsd6_",
-          "type": "uint256"
-        }
-      ],
-      "name": "setMaxActionUsd6",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "bool",
           "name": "paused_",
           "type": "bool"
@@ -772,6 +649,16 @@
           "internalType": "uint64",
           "name": "pairIndex",
           "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "tokenIndex",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pxScale",
+          "type": "uint256"
         }
       ],
       "name": "setSpotConfig",
@@ -873,19 +760,6 @@
     {
       "inputs": [
         {
-          "internalType": "uint64",
-          "name": "weiAmount",
-          "type": "uint64"
-        }
-      ],
-      "name": "stakeHype",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "address",
           "name": "newOwner",
           "type": "address"
@@ -894,32 +768,6 @@
       "name": "transferOwnership",
       "outputs": [],
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint64",
-          "name": "weiAmount",
-          "type": "uint64"
-        }
-      ],
-      "name": "withdrawStake",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "withdrawable",
-      "outputs": [
-        {
-          "internalType": "uint64",
-          "name": "",
-          "type": "uint64"
-        }
-      ],
-      "stateMutability": "view",
       "type": "function"
     }
   ],
