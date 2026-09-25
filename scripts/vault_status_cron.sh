@@ -22,7 +22,15 @@ if ! git diff --quiet -- public/vault_status.json; then
   git add public/vault_status.json
   git commit -q -m "vault_status: refresh $(date -u +%FT%TZ)"
   git push -q
-  echo "$(date -u +%FT%TZ) vault_status published"
+fi
+
+# Publish: this Pages project has NO Git->Cloudflare integration (every
+# deployment in its history is a direct upload), so a push alone never goes
+# live. The writer already refreshed dist/vault_status.json; deploy the
+# existing build output (wrangler diffs and uploads only the change).
+if [ -d dist ]; then
+  npx wrangler pages deploy dist --project-name pro-yield --branch main
+  echo "$(date -u +%FT%TZ) vault_status published + deployed"
 else
-  echo "$(date -u +%FT%TZ) vault_status unchanged"
+  echo "WARN: no dist/ — feed updated in git but NOT deployed; run a build"
 fi
