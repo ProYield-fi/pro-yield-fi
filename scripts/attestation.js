@@ -34,14 +34,14 @@ const PRODUCT = {
   name: "hyperevm-mainnet",
   chainId: 999,
   rpc: "https://rpc.hyperliquid.xyz/evm",
-  vault: "0xadaE15e23b0007de2A85b1F3874332762Bc23bb0",
+  vault: "0x8954a73Bb36D17e4B212137Eb7B2328A1A14D1C1",
   asset: "0xb88339CB7199b77E23DB6E890353E22632Ba630f", // Circle-native USDC
   feeCollector: null, // this revision routes fees via the FeeDistributor; no feeCollector getter
   insurance: "0x091a1cFE247A041d400B6Fd57c14A652Bb865f67",
   treasury: "0x8A1b107e1DDabC868E40b8718F09537B0A50C9aB",
   keeper: null, // no keeper configured at the team stage
-  maybeFeeDistributor: "0xAa67940672047EcE44db2876378b182C1Fc4217C",
-  note: "HyperEVM mainnet — guarded capped beta (TVL cap $500, caps in code). Team E2E round trip passed 2026-09-24; ownership = 2-of-3 treasury Safe.",
+  maybeFeeDistributor: "0x18FB3e2FCd2221EeeB73E8D92ac892E38483b8E9",
+  note: "HyperEVM mainnet — guarded capped beta (TVL cap $500, caps in code). Redeployed 2026-09-25 carrying the round-2 audit fixes; ownership = 2-of-3 treasury Safe.",
 };
 const VENUES = {
   wallet: "0x8377870974df41DB4aaa67a842781227390167a9",
