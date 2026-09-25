@@ -5,6 +5,8 @@
 set -euo pipefail
 
 cd /home/user/hypervault
+# stay in sync with origin first — the public audit repo receives commits from elsewhere
+git pull --rebase -q || echo "WARN: hypervault pull failed; continuing"
 node scripts/attestation.js --publish
 
 # Daily per-user portfolio snapshots (growth-chart backstop) — honest gaps on failure
@@ -19,6 +21,7 @@ fi
 
 # website: commit public/attestations/ only (triggers the Cloudflare Pages deploy)
 cd /home/user/websites/pro-yield-web
+git pull --rebase -q || echo "WARN: web pull failed; continuing"
 if ! git diff --quiet -- public/attestations/ || [ -n "$(git ls-files --others --exclude-standard public/attestations/)" ]; then
   git add public/attestations/
   git commit -q -m "attestation: $(date -u +%F)"
