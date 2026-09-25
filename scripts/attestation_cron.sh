@@ -19,25 +19,15 @@ if ! git diff --quiet -- attestations/ || [ -n "$(git ls-files --others --exclud
   git push -q
 fi
 
-# website: commit public/attestations/ (git archive) + DEPLOY the files.
-# NOTE: this Pages project has NO Git->Cloudflare integration — a push alone
-# never goes live (every deployment in its history is a direct upload from
-# this box). Copy the new attestations into the existing build output and
-# upload (wrangler diffs and sends only the change).
+# website: commit public/attestations/ only (the push triggers the GitHub
+# Actions 'Deploy to Cloudflare Pages' workflow — the daily commit IS the
+# publication mechanism; don't "fix" it as deploy noise)
 cd /home/user/websites/pro-yield-web
 git pull --rebase -q || echo "WARN: web pull failed; continuing"
 if ! git diff --quiet -- public/attestations/ || [ -n "$(git ls-files --others --exclude-standard public/attestations/)" ]; then
   git add public/attestations/
   git commit -q -m "attestation: $(date -u +%F)"
   git push -q
-fi
-
-if [ -d dist ]; then
-  mkdir -p dist/attestations
-  cp -f public/attestations/*.json dist/attestations/ 2>/dev/null || true
-  npx wrangler pages deploy dist --project-name pro-yield --branch main
-else
-  echo "WARN: no dist/ — attestations committed but NOT deployed; run a build"
 fi
 
 echo "$(date -u +%FT%TZ) attestation published"
