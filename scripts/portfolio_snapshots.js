@@ -121,9 +121,18 @@ async function snapshotFor(address) {
 }
 
 async function main() {
-  const rows = d1("SELECT user_id, address FROM wallet_links");
+  // Linked wallets + (for users without an explicit link) their embedded
+  // (Privy) wallet mirrored in `users` — the same resolution order the site's
+  // /api/portfolio uses, so growth charts and the dashboard track one wallet.
+  const rows = d1(
+    "SELECT user_id, address FROM wallet_links " +
+      "UNION ALL " +
+      "SELECT u.privy_id AS user_id, u.wallet_address AS address FROM users u " +
+      "WHERE u.wallet_address IS NOT NULL AND u.wallet_address != '' " +
+      "AND NOT EXISTS (SELECT 1 FROM wallet_links wl2 WHERE wl2.user_id = u.privy_id)"
+  );
   const date = new Date().toISOString().slice(0, 10);
-  console.log(`${new Date().toISOString()} snapshot run — ${rows.length} linked wallet(s) → ${date}`);
+  console.log(`${new Date().toISOString()} snapshot run — ${rows.length} wallet(s) → ${date}`);
   let ok = 0;
   let skipped = 0;
   for (const r of rows) {

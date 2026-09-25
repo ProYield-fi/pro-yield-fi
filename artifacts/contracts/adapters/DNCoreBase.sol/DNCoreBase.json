@@ -45,6 +45,11 @@
     },
     {
       "inputs": [],
+      "name": "DNCore__SpotDisabled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "DNCore__WrongAsset",
       "type": "error"
     },
@@ -132,6 +137,25 @@
         }
       ],
       "name": "Delegated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "destination",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "weiAmount",
+          "type": "uint64"
+        }
+      ],
+      "name": "HedgeTransferOut",
       "type": "event"
     },
     {
@@ -266,6 +290,37 @@
         {
           "indexed": false,
           "internalType": "uint64",
+          "name": "pairIndex",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "tokenIndex",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint32",
+          "name": "asset",
+          "type": "uint32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "pxScale",
+          "type": "uint256"
+        }
+      ],
+      "name": "SpotConfigSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint64",
           "name": "weiAmount",
           "type": "uint64"
         }
@@ -377,6 +432,24 @@
         }
       ],
       "name": "delegateHype",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "destination",
+          "type": "address"
+        },
+        {
+          "internalType": "uint64",
+          "name": "weiAmount",
+          "type": "uint64"
+        }
+      ],
+      "name": "hedgeTransferOut",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -497,6 +570,29 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "limitPx",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "sz",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint8",
+          "name": "tif",
+          "type": "uint8"
+        }
+      ],
+      "name": "openSpotBuy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "oraclePx",
       "outputs": [
@@ -611,6 +707,29 @@
     {
       "inputs": [
         {
+          "internalType": "uint64",
+          "name": "limitPx",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "sz",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint8",
+          "name": "tif",
+          "type": "uint8"
+        }
+      ],
+      "name": "sellSpot",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "maxActionUsd6_",
           "type": "uint256"
@@ -645,6 +764,110 @@
       "name": "setPerpAsset",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "pairIndex",
+          "type": "uint64"
+        }
+      ],
+      "name": "setSpotConfig",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "spotAsset",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "spotHedgeSz",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "spotPairIndex",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "spotPx",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "spotPxScale",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "spotTokenIndex",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "spotValue6",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {

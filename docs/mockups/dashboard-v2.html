@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pro Yield — Dashboard v2 concept</title>
+<style>
+  :root{
+    --bg: hsl(222 47% 11%);
+    --card: hsl(217 33% 17%);
+    --card-2: hsl(217 33% 20%);
+    --border: hsl(217 33% 25%);
+    --fg: hsl(210 40% 98%);
+    --muted: hsl(215 20% 55%);
+    --primary: hsl(192 96% 43%);
+    --primary-dim: hsl(192 96% 43% / .12);
+    --profit: #22c55e;
+    --amber: hsl(43 74% 66%);
+    --radius: 12px;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background: var(--bg);
+    color: var(--fg);
+    font: 14px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap{width:920px;max-width:100%;padding:14px 18px 30px}
+
+  /* mock banner */
+  .mock-note{
+    display:flex;align-items:center;gap:8px;
+    font-size:11px;color:var(--amber);
+    border:1px dashed hsl(43 74% 66% / .4);
+    background: hsl(43 74% 66% / .06);
+    padding:6px 10px;border-radius:8px;margin-bottom:12px;
+  }
+  .mock-note b{color:var(--amber)}
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:-.01em}
+  .brand .logo{width:22px;height:22px;border-radius:6px;background:var(--primary);display:grid;place-items:center;color:#06222b;font-size:12px;font-weight:800}
+  .top-right{display:flex;align-items:center;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:4px 10px;background:var(--card)}
+  .chip.mono{font-family:var(--mono);font-size:10.5px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--profit);box-shadow:0 0 0 3px hsl(142 71% 45% / .18)}
+  .dot.gray{background:var(--muted);box-shadow:none}
+  .avatar{width:26px;height:26px;border-radius:50%;background:var(--card-2);border:1px solid var(--border);display:grid;place-items:center;font-size:11px;font-weight:600}
+
+  /* state preview bar (mockup control) */
+  .statebar{display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .statebar span{font-size:11px;color:var(--muted);margin-right:2px}
+  .stab{font-size:11.5px;color:var(--muted);border:1px solid var(--border);background:transparent;border-radius:999px;padding:3px 10px;cursor:pointer}
+  .stab:hover{color:var(--fg)}
+  body[data-state="signedout"] .stab[data-for="signedout"],
+  body[data-state="linked"] .stab[data-for="linked"],
+  body[data-state="earning"] .stab[data-for="earning"]{background:var(--primary-dim);border-color:hsl(192 96% 43% / .5);color:var(--primary)}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+
+  /* hero */
+  .hero{display:flex;justify-content:space-between;gap:20px;padding:20px 22px;margin-bottom:12px;background:
+    linear-gradient(135deg, hsl(192 96% 43% / .10), transparent 45%), var(--card)}
+  .hero .label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px}
+  .hero .big{font-family:var(--mono);font-size:40px;line-height:1;font-weight:700;letter-spacing:-.02em;margin:0}
+  .hero .bigsmall{font-family:var(--mono);font-size:24px;line-height:1.1;font-weight:700;margin:0}
+  .hero .sub{color:var(--muted);font-size:12.5px;margin:10px 0 0;max-width:420px}
+  .hero .sub b{color:var(--profit);font-weight:600}
+  .hero-right{text-align:right;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;gap:8px}
+  .cta{display:flex;gap:8px;margin-top:14px}
+  .btn{font-size:12.5px;font-weight:600;border-radius:9px;padding:8px 14px;border:1px solid transparent;cursor:pointer;font-family:inherit}
+  .btn.primary{background:var(--primary);color:#06222b}
+  .btn.ghost{background:transparent;border-color:var(--border);color:var(--fg)}
+  .today-chip{font-family:var(--mono);font-size:12px;color:var(--profit);border:1px solid hsl(142 71% 45% / .3);background:hsl(142 71% 45% / .08);border-radius:999px;padding:4px 10px}
+  .rate-chip{font-size:11px;color:var(--muted)}
+  .rate-chip b{color:var(--fg);font-family:var(--mono)}
+
+  /* ribbon */
+  .ribbon{padding:12px 14px;margin-bottom:12px}
+  .ribbon h3{margin:0 0 10px;font-size:12px;color:var(--muted);font-weight:600}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+  .node{flex:1 1 126px;min-width:126px;border:1px solid var(--border);background:var(--bg);border-radius:10px;padding:9px 11px;position:relative}
+  .node .n-title{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .node .n-val{font-family:var(--mono);font-size:14px;font-weight:700;margin-top:3px}
+  .node .n-chip{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .node .n-chip.ok{color:var(--profit)}
+  .node .n-chip.acc{color:var(--primary)}
+  .node.active{border-color:hsl(192 96% 43% / .55);background:linear-gradient(180deg, hsl(192 96% 43% / .07), transparent)}
+  .node.locked{opacity:.55}
+  .arrow{align-self:center;color:hsl(215 20% 55% / .5);font-size:13px;flex:0 0 auto}
+
+  /* metrics */
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+  .tile{padding:13px 15px}
+  .tile .t-label{font-size:11px;color:var(--muted)}
+  .tile .t-val{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
+  .tile .t-sub{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .tile.hidden{display:none}
+  body.pro .tile.hidden{display:block}
+  .pos{color:var(--profit)}
+
+  /* chart */
+  .chart{padding:16px 18px 12px;margin-bottom:12px}
+  .chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .chart-head h3{margin:0;font-size:14px;font-weight:600}
+  .ranges{display:flex;gap:4px}
+  .ranges button{font-size:10.5px;color:var(--muted);background:transparent;border:1px solid transparent;border-radius:7px;padding:3px 9px;cursor:pointer;font-family:inherit}
+  .ranges button.on{color:var(--primary);border-color:hsl(192 96% 43% / .4);background:var(--primary-dim)}
+  .chart-foot{display:flex;gap:14px;align-items:center;color:var(--muted);font-size:11.5px;padding:8px 2px 2px;border-top:1px solid hsl(217 33% 25% / .6);margin-top:6px}
+  .chart-foot b{color:var(--profit);font-family:var(--mono)}
+  .empty-chart{height:150px;display:grid;place-items:center;color:var(--muted);font-size:12.5px;text-align:center;padding:0 30px}
+
+  /* split row */
+  .split{display:grid;grid-template-columns:1fr 1.35fr;gap:12px;margin-bottom:12px}
+  .pad{padding:16px 18px}
+  .pad h3{margin:0 0 12px;font-size:14px;font-weight:600}
+  .donut-row{display:flex;gap:16px;align-items:center}
+  .legend{display:flex;flex-direction:column;gap:8px;font-size:12px}
+  .legend .l-row{display:flex;gap:8px;align-items:baseline}
+  .swatch{width:9px;height:9px;border-radius:3px;flex:0 0 auto;position:relative;top:1px}
+  .legend .l-sub{color:var(--muted);font-size:10.5px;margin-left:17px;margin-top:-4px}
+  .why{color:var(--muted);font-size:11px;margin-top:12px;border-top:1px solid hsl(217 33% 25% / .6);padding-top:10px}
+
+  .steps{display:flex;flex-direction:column;gap:10px}
+  .step{display:flex;gap:11px;align-items:flex-start}
+  .step .num{flex:0 0 22px;height:22px;border-radius:50%;background:var(--primary-dim);border:1px solid hsl(192 96% 43% / .45);color:var(--primary);font-size:11px;font-weight:700;display:grid;place-items:center;margin-top:1px}
+  .step .s-t{font-size:12.5px}
+  .step .s-s{font-size:11px;color:var(--muted)}
+  .how-foot{color:var(--muted);font-size:11px;margin-top:12px;border-top:1px solid hsl(217 33% 25% / .6);padding-top:10px}
+
+  /* activity */
+  .activity{padding:14px 18px;margin-bottom:12px}
+  .activity h3{margin:0 0 6px;font-size:14px;font-weight:600}
+  .act-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid hsl(217 33% 25% / .5);font-size:12.5px}
+  .act-row:last-child{border-bottom:none}
+  .act-row .a-l{display:flex;gap:9px;align-items:center}
+  .act-row .a-ico{width:24px;height:24px;border-radius:7px;background:var(--card-2);display:grid;place-items:center;font-size:11px}
+  .act-row .a-amt{font-family:var(--mono);color:var(--profit);font-size:12px}
+  .act-row .a-time{color:var(--muted);font-size:11px}
+  .act-empty{color:var(--muted);font-size:12.5px;padding:6px 0 8px}
+
+  /* details */
+  .details{margin-bottom:16px}
+  .details h3{font-size:12px;color:var(--muted);margin:0 0 8px;font-weight:600}
+  details{border:1px solid var(--border);border-radius:10px;background:var(--card);margin-bottom:8px;overflow:hidden}
+  summary{cursor:pointer;padding:11px 15px;font-size:12.5px;color:var(--fg);list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::after{content:"+";color:var(--muted);font-size:14px}
+  details[open] summary::after{content:"–"}
+  summary::-webkit-details-marker{display:none}
+  .d-body{padding:2px 15px 14px;font-size:12px;color:var(--muted)}
+  .mini-table{width:100%;border-collapse:collapse;font-size:11.5px}
+  .mini-table th{text-align:left;color:var(--muted);font-weight:500;padding:4px 6px;border-bottom:1px solid var(--border)}
+  .mini-table td{padding:5px 6px;border-bottom:1px solid hsl(217 33% 25% / .4);font-family:var(--mono);font-size:11px}
+  .mini-table td:first-child{font-family:inherit}
+  .d-note{font-size:10.5px;color:hsl(215 20% 55% / .8);margin-top:8px}
+
+  /* state visibility */
+  body:not([data-state="earning"]) .only-earning{display:none!important}
+  body[data-state="earning"] .only-notearning{display:none!important}
+  body[data-state="signedout"] .only-auth{display:none!important}
+  body:not([data-state="signedout"]) .only-signedout{display:none!important}
+
+  /* responsive: ribbon wraps without dangling arrows; grids collapse */
+  @media (max-width: 840px){
+    .arrow{display:none}
+    .node{flex:1 1 calc(50% - 8px);min-width:0}
+  }
+  @media (max-width: 560px){
+    .metrics{grid-template-columns:1fr 1fr}
+    .split{grid-template-columns:1fr}
+  }
+  @media (max-width: 440px){
+    .node{flex-basis:100%}
+    .metrics{grid-template-columns:1fr}
+  }
+  .topbar{flex-wrap:wrap}
+  body:not([data-state="earning"]) .d-svg{opacity:.38}
+  body:not([data-state="earning"]) .t-val.pos{color:var(--muted)}
+
+  footer{color:var(--muted);font-size:10.5px;padding:6px 2px;border-top:1px solid var(--border)}
+  footer b{color:var(--fg);font-weight:500}
+</style>
+</head>
+<body data-state="earning">
+<div class="wrap">
+
+  <div class="mock-note"><b>MOCKUP — sample figures.</b> Layout review only; live numbers come from /api/portfolio. Toggle a preview state below.</div>
+
+  <!-- TOP BAR: wallet + live status live here now -->
+  <div class="topbar">
+    <div class="brand"><span class="logo">P</span> ProYield <span style="color:var(--muted);font-weight:400;font-size:12px;margin-left:4px">/ Dashboard</span></div>
+    <div class="top-right only-auth">
+      <span class="chip mono" id="wallet-chip">0x8377…67a9 · read-only</span>
+      <span class="chip"><span class="dot"></span>Live · updated 8s ago</span>
+      <span class="avatar">N</span>
+    </div>
+    <div class="top-right only-signedout">
+      <span class="chip"><span class="dot gray"></span>Not signed in</span>
+      <button class="btn primary" style="padding:5px 12px">Sign in</button>
+    </div>
+  </div>
+
+  <div class="statebar">
+    <span>Preview state:</span>
+    <button class="stab" data-for="signedout">Signed out</button>
+    <button class="stab" data-for="linked">Linked — no deposit yet</button>
+    <button class="stab" data-for="earning">Earning</button>
+  </div>
+
+  <!-- HERO — one number -->
+  <div class="hero card">
+    <div class="hero-left">
+      <p class="label" id="hero-label">Your money</p>
+      <p class="big only-earning">$1,017.82</p>
+      <p class="bigsmall only-notearning only-auth" id="small-hero">$17.82</p>
+      <p class="bigsmall only-signedout">—</p>
+      <p class="sub only-signedout">Sign in to see your money — we show only real figures, nothing until you connect.</p>
+      <p class="sub only-earning">Earning <b>7.3% / yr</b> in blue-chip lending · withdraw anytime, non-custodial.</p>
+      <p class="sub only-notearning only-auth">Sitting in your wallet, safe and withdrawable. When vault deposits open, one click moves it to earning.</p>
+
+      <div class="cta only-signedout"><button class="btn primary">Sign in to start</button></div>
+      <div class="cta only-earning">
+        <button class="btn primary">Add money</button>
+        <button class="btn ghost">Withdraw</button>
+      </div>
+      <div class="cta only-notearning only-auth" id="linked-cta">
+        <button class="btn primary">Get Early Access</button>
+        <button class="btn ghost">Buy USDC — one purchase covers gas</button>
+      </div>
+    </div>
+    <div class="hero-right only-auth">
+      <span class="today-chip only-earning">+$0.21 today</span>
+      <span class="rate-chip only-earning">≈ <b>$0.20</b> /day at current rate</span>
+      <span class="rate-chip only-notearning" style="color:var(--muted)">no deposit yet</span>
+    </div>
+  </div>
+
+  <!-- MONEY-FLOW RIBBON — wraps gracefully, no bleed -->
+  <div class="ribbon card">
+    <h3>Where your money is right now</h3>
+    <div class="flow">
+      <div class="node"><div class="n-title">💳 Card / bank</div><div class="n-chip ok only-auth">✓ sent</div><div class="n-chip only-signedout">—</div></div>
+      <div class="arrow">→</div>
+      <div class="node active only-auth"><div class="n-title">👤 Your wallet</div><div class="n-val" id="node-wallet">$17.82</div><div class="n-chip">yours · withdraw anytime</div></div>
+      <div class="node locked only-signedout"><div class="n-title">👤 Your wallet</div><div class="n-val">—</div><div class="n-chip">sign in to view</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="n-title">🌱 Vault deposit</div><div class="n-val only-earning">$1,000.00</div><div class="n-chip only-earning">in the vault</div><div class="n-chip acc only-notearning">opens with early access</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="n-title">📈 How it earns</div><div class="n-chip">blue-chip lending</div><div class="n-chip">+ capped sleeve (not lending)</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="n-title">💧 Interest → you</div><div class="n-val pos only-earning">+$0.21 /day</div><div class="n-chip only-earning">paid by borrowers</div><div class="n-chip only-notearning">starts at your deposit</div></div>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="metrics">
+    <div class="tile card"><div class="t-label">Deposited</div><div class="t-val" id="m-dep">$1,000.00</div><div class="t-sub" id="m-dep-sub">in the vault</div></div>
+    <div class="tile card"><div class="t-label">Total earned</div><div class="t-val pos" id="m-earn">+$17.82</div><div class="t-sub" id="m-earn-sub">since 12 Aug · unrealized</div></div>
+    <div class="tile card"><div class="t-label">Earned today</div><div class="t-val pos" id="m-today">+$0.21</div><div class="t-sub" id="m-today-sub">accrues continuously</div></div>
+    <div class="tile card hidden"><div class="t-label">Target rate</div><div class="t-val">7.3%</div><div class="t-sub">model blend · moves with the market</div></div>
+    <div class="tile card hidden"><div class="t-label">Withdrawn</div><div class="t-val">$0.00</div><div class="t-sub">available anytime</div></div>
+    <div class="tile card hidden"><div class="t-label">Total PnL</div><div class="t-val pos">+$17.82</div><div class="t-sub">earnings − fees ($0 during early access)</div></div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart card only-auth">
+    <div class="chart-head">
+      <h3 class="only-earning">Your earnings</h3>
+      <h3 class="only-notearning">Your earnings</h3>
+      <div class="ranges"><button>1W</button><button class="on">1M</button><button>3M</button><button>ALL</button></div>
+    </div>
+    <div class="only-earning">
+      <svg id="spark" viewBox="0 0 820 170" width="100%" height="170" preserveAspectRatio="none" aria-label="earnings over time"></svg>
+      <div class="chart-foot"><span>▲ <b>+$0.21</b> today</span><span>·</span><span>earning <b style="color:var(--fg)">12 days</b></span><span style="margin-left:auto">daily snapshots · sourced</span></div>
+    </div>
+    <div class="only-notearning empty-chart">Your growth line starts the day your first deposit lands — real numbers only.</div>
+  </div>
+  <div class="chart card only-signedout">
+    <div class="chart-head"><h3>Your earnings</h3></div>
+    <div class="empty-chart">Sign in to see your growth — one line, one story.</div>
+  </div>
+
+  <!-- SPLIT: donut + how it earns -->
+  <div class="split">
+    <div class="donut pad card">
+      <h3>Where your money sits</h3>
+      <div class="d-cap only-earning" style="font-size:11px;color:var(--muted);margin:-6px 0 10px">Your live allocation — sourced, updated daily.</div>
+      <div class="d-cap only-notearning" style="font-size:11px;color:var(--muted);margin:-6px 0 10px">Target allocation — starts when you deposit.</div>
+      <div class="donut-row">
+        <svg class="d-svg" width="128" height="128" viewBox="0 0 128 128" aria-label="allocation">
+          <g transform="rotate(-90 64 64)">
+            <circle cx="64" cy="64" r="52" fill="none" stroke="hsl(217 33% 25%)" stroke-width="13"/>
+            <circle cx="64" cy="64" r="52" fill="none" stroke="hsl(192 96% 43%)" stroke-width="13" stroke-dasharray="261.4 65.3" />
+            <circle cx="64" cy="64" r="52" fill="none" stroke="hsl(166 72% 47%)" stroke-width="13" stroke-dasharray="32.7 294" stroke-dashoffset="-261.4"/>
+            <circle cx="64" cy="64" r="52" fill="none" stroke="hsl(43 74% 66%)" stroke-width="13" stroke-dasharray="32.7 294" stroke-dashoffset="-294.1"/>
+          </g>
+          <text id="donut-top" x="64" y="62" text-anchor="middle" fill="hsl(210 40% 98%)" font-size="14" font-weight="700" font-family="Inter,sans-serif">100%</text>
+          <text id="donut-bottom" x="64" y="78" text-anchor="middle" fill="hsl(215 20% 55%)" font-size="9.5" font-family="Inter,sans-serif">earning</text>
+        </svg>
+        <div class="legend">
+          <div class="l-row"><span class="swatch" style="background:hsl(192 96% 43%)"></span><b>80% — Core lending</b></div>
+          <div class="l-sub">Aave · Sky · Morpho (blue-chip venues)</div>
+          <div class="l-row"><span class="swatch" style="background:hsl(166 72% 47%)"></span><b>10% — Fixed rate</b></div>
+          <div class="l-sub">Pendle PT — locked rate to maturity</div>
+          <div class="l-row"><span class="swatch" style="background:hsl(43 74% 66%)"></span><b>10% — Capped sleeve</b></div>
+          <div class="l-sub">delta-neutral funding — not lending</div>
+        </div>
+      </div>
+      <div class="why">Why this shape: one boring job done well — lend stablecoins to the safest venues. Sleeves stay capped and are shown before you opt in.</div>
+    </div>
+
+    <div class="how pad card">
+      <h3>How it earns — in plain words</h3>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div><div class="s-t">You deposit USDC</div><div class="s-s">Non-custodial — the vault contract moves it; you can withdraw anytime.</div></div></div>
+        <div class="step"><div class="num">2</div><div><div class="s-t">It's lent to borrowers</div><div class="s-s">On audited venues (Aave, Sky, Morpho) that have handled billions.</div></div></div>
+        <div class="step"><div class="num">3</div><div><div class="s-t">Their interest becomes your yield</div><div class="s-s">Rates move with borrower demand; the balancer keeps you on the best verified rate.</div></div></div>
+      </div>
+      <div class="how-foot">No trading. No leverage. Every figure traces to a published source — check the transparency page anytime.</div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY -->
+  <div class="activity card only-auth">
+    <h3>Recent activity</h3>
+    <div class="only-earning">
+      <div class="act-row"><div class="a-l"><span class="a-ico">💧</span><div>Interest earned <span class="a-time">· auto</span></div></div><div><span class="a-amt">+$0.21</span> <span class="a-time">today 08:14</span></div></div>
+      <div class="act-row"><div class="a-l"><span class="a-ico">🌱</span><div>Deposit · USDC → vault</div></div><div><span class="a-amt" style="color:var(--fg)">$1,000.00</span> <span class="a-time">12 Aug</span></div></div>
+      <div class="act-row"><div class="a-l"><span class="a-ico">💳</span><div>Card purchase · USDC on Arbitrum</div></div><div><span class="a-amt" style="color:var(--fg)">$1,017.61</span> <span class="a-time">12 Aug</span></div></div>
+    </div>
+    <div class="act-empty only-notearning">Nothing yet — your first purchase and deposit will show up here.</div>
+  </div>
+
+  <!-- DETAILS — progressive disclosure -->
+  <div class="details">
+    <h3>DETAILS &amp; TRANSPARENCY <button class="stab" id="pro-toggle" style="margin-left:8px">Show pro figures</button></h3>
+    <details>
+      <summary>Where exactly is the money? (venues &amp; live rates)</summary>
+      <div class="d-body">
+        <table class="mini-table">
+          <tr><th>Venue</th><th>Chain</th><th>TVL</th><th>Base APY</th></tr>
+          <tr><td>morpho-blue · STEAKUSDT</td><td>Ethereum</td><td>$87M</td><td>7.68%</td></tr>
+          <tr><td>morpho-blue · PENDLEUSDC</td><td>Ethereum</td><td>$67M</td><td>5.71%</td></tr>
+          <tr><td>sky-lending · STUSDS</td><td>Ethereum</td><td>$190M</td><td>5.11%</td></tr>
+          <tr><td>morpho-blue · GTUSDCP</td><td>Ethereum</td><td>$95M</td><td>4.55%</td></tr>
+        </table>
+        <div class="d-note">Point-in-time market observations, not promises — verified 2026-09-24 via DefiLlama. Full history on /transparency.</div>
+      </div>
+    </details>
+    <details>
+      <summary>Wallet breakdown (wallet vs vault vs venue)</summary>
+      <div class="d-body">Wallet $17.82 on Arbitrum (withdrawable anytime) · Vault deposit $1,000.00 · Accrued interest +$17.82. Sources: Arbitrum RPC · Hyperliquid API · HyperEVM RPC — as of 09:23, refreshed every 30s.</div>
+    </details>
+    <details>
+      <summary>Fees</summary>
+      <div class="d-body">0% during early access. Later: a 10% performance fee on profits only, charged when the vault is up — no deposit fee, no exit fee, no management fee. 60% of fees recycle back to depositors.</div>
+    </details>
+    <details>
+      <summary>How your funds are protected</summary>
+      <div class="d-body">Non-custody (funds stay yours) · whitelisted venues only · hard caps on sleeves · insurance fund (20% of fees, 2-of-3 multisig) · daily attestations published. These layers reduce risk; they don't eliminate it.</div>
+    </details>
+  </div>
+
+  <section class="tier-preview">
+    <style>
+      .tier-preview{margin-top:14px;border:1px dashed hsl(43 74% 66% / .4);border-radius:var(--radius);padding:14px 16px;background:hsl(43 74% 66% / .04)}
+      .tier-preview h3{margin:0 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber)}
+      .tier-preview .tp-sub{color:var(--muted);font-size:12px;margin:0 0 12px}
+      .tp-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+      .tp-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+      .tp-card{flex:1 1 165px;min-width:148px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+      .tp-card .tname{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13px}
+      .tp-dot{width:9px;height:9px;border-radius:50%;flex:none}
+      .tp-card .tapy{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:6px}
+      .tp-card .tmeta{color:var(--muted);font-size:11px;margin-top:2px}
+      .tp-default{font-size:10px;color:var(--primary);border:1px solid hsl(192 96% 43% / .4);border-radius:999px;padding:1px 6px;margin-left:auto}
+      .tp-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+      .tp-chip{display:flex;align-items:center;gap:6px;font-size:12px;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:5px 10px}
+      .tp-chip b{font-weight:600}
+      .tp-foot{color:var(--muted);font-size:11px;margin-top:10px}
+    </style>
+    <h3>V2 preview — tier displays</h3>
+    <p class="tp-sub">Two separate systems, never conflated: (1) strategy risk tiers — how much safety vs yield; (2) $PYD membership — fee rebates for stakers.</p>
+    <div class="tp-head"><b style="font-size:12px">Choose your strategy</b><span style="font-size:11px;color:var(--muted)">estimated blend from live rates · default = Balanced</span></div>
+    <div class="tp-row">
+      <div class="tp-card"><div class="tname"><span class="tp-dot" style="background:#22c55e"></span>Conservative</div><div class="tapy">~6.53%</div><div class="tmeta">LOW risk · safety 4+/5</div></div>
+      <div class="tp-card"><div class="tname"><span class="tp-dot" style="background:#3b82f6"></span>Balanced<span class="tp-default">DEFAULT</span></div><div class="tapy">~7.67%</div><div class="tmeta">MEDIUM risk · safety 3+/5</div></div>
+      <div class="tp-card"><div class="tname"><span class="tp-dot" style="background:#f59e0b"></span>Aggressive</div><div class="tapy">~8.17%</div><div class="tmeta">HIGH risk · safety 2+/5</div></div>
+      <div class="tp-card"><div class="tname"><span class="tp-dot" style="background:#ef4444"></span>Maximum</div><div class="tapy">~8.48%</div><div class="tmeta">VERY HIGH risk · safety 1+/5</div></div>
+    </div>
+    <div class="tp-head" style="margin-top:14px"><b style="font-size:12px">Membership — stake $PYD</b><span style="font-size:11px;color:var(--muted)">fee rebates · under review until utility ships</span></div>
+    <div class="tp-chips">
+      <span class="tp-chip"><span class="tp-dot" style="background:#9ca3af"></span>Base</span>
+      <span class="tp-chip"><span class="tp-dot" style="background:#cd7f32"></span>Bronze <b>+5% off fees</b></span>
+      <span class="tp-chip"><span class="tp-dot" style="background:#c0c7d1"></span>Silver <b>+10%</b></span>
+      <span class="tp-chip"><span class="tp-dot" style="background:#eab308"></span>Gold <b>+15%</b></span>
+      <span class="tp-chip"><span class="tp-dot" style="background:#a78bfa"></span>Platinum <b>+20%</b></span>
+    </div>
+    <p class="tp-foot">On the real dashboard this becomes: a tier selector near "how it earns" (with expected-APY ranges), and a small membership row showing <b>your tier → your discount</b> once $PYD staking ships.</p>
+  </section>
+
+  <footer><b>Non-custodial. Sourced. Verifiable.</b> Capital at risk — rates move, smart contracts carry risk. This is not financial advice.</footer>
+</div>
+
+<script>
+  // state switcher
+  document.querySelectorAll('.stab[data-for]').forEach(b=>{
+    b.addEventListener('click',()=>{document.body.dataset.state=b.dataset.for;});
+  });
+  document.getElementById('pro-toggle').addEventListener('click',(e)=>{
+    e.preventDefault();document.body.classList.toggle('pro');
+    e.target.textContent=document.body.classList.contains('pro')?'Hide pro figures':'Show pro figures';
+  });
+
+  // per-state numbers
+  const perState={
+    signedout:null,
+    linked:{wallet:'$17.82',dep:'—',depSub:'nothing deposited yet',earn:'—',earnSub:'starts at your first deposit'},
+    earning:{wallet:'$17.82',dep:'$1,000.00',depSub:'in the vault',earn:'+$17.82',earnSub:'since 12 Aug · unrealized'}
+  };
+  function applyState(){
+    const s=document.body.dataset.state;const d=perState[s];
+    const w=document.getElementById('node-wallet');
+    if(w)w.textContent=d?d.wallet:'—';
+    const dep=document.getElementById('m-dep'),deps=document.getElementById('m-dep-sub'),
+          er=document.getElementById('m-earn'),ers=document.getElementById('m-earn-sub'),
+          td=document.getElementById('m-today'),tds=document.getElementById('m-today-sub'),
+          dt=document.getElementById('donut-top'),db=document.getElementById('donut-bottom');
+    if(dep){dep.textContent=d?d.dep:'—';deps.textContent=d?d.depSub:'sign in to view';}
+    if(er){er.textContent=d?d.earn:'—';ers.textContent=d?d.earnSub:'sign in to view';}
+    if(td){
+      if(s==='earning'){td.textContent='+$0.21';tds.textContent='accrues continuously';}
+      else if(s==='linked'){td.textContent='—';tds.textContent='starts at your first deposit';}
+      else {td.textContent='—';tds.textContent='sign in to view';}
+    }
+    if(dt){
+      if(s==='earning'){dt.textContent='100%';db.textContent='earning';}
+      else if(s==='linked'){dt.textContent='—';db.textContent='not earning yet';}
+      else {dt.textContent='—';db.textContent='sign in';}
+    }
+  }
+  new MutationObserver(applyState).observe(document.body,{attributes:true,attributeFilter:['data-state']});
+  applyState();
+
+  // sparkline (deterministic gentle rise)
+  (function(){
+    const svg=document.getElementById('spark');if(!svg)return;
+    const W=820,H=170,pad={t:14,r:8,b:14,l:8};
+    const n=30,start=1000.00,end=1017.82;
+    const pts=[];
+    for(let i=0;i<n;i++){
+      const t=i/(n-1);
+      const base=start+(end-start)*t;
+      const wig=Math.sin(i*1.7)*0.22+Math.sin(i*0.53)*0.3;
+      pts.push(base+wig);
+    }
+    const lo=Math.min(...pts)-1.2,hi=Math.max(...pts)+0.6;
+    const X=i=>pad.l+(W-pad.l-pad.r)*(i/(n-1));
+    const Y=v=>pad.t+(H-pad.t-pad.b)*(1-(v-lo)/(hi-lo));
+    let line='M'+X(0).toFixed(1)+','+Y(pts[0]).toFixed(1);
+    for(let i=1;i<n;i++)line+=' L'+X(i).toFixed(1)+','+Y(pts[i]).toFixed(1);
+    const area=line+' L'+X(n-1).toFixed(1)+','+(H-pad.b)+' L'+X(0).toFixed(1)+','+(H-pad.b)+' Z';
+    svg.innerHTML=`
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="hsl(192 96% 43%)" stop-opacity=".28"/>
+        <stop offset="100%" stop-color="hsl(192 96% 43%)" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path d="${area}" fill="url(#g1)"/>
+      <path d="${line}" fill="none" stroke="hsl(192 96% 43%)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${X(n-1)}" cy="${Y(pts[n-1])}" r="3.4" fill="hsl(192 96% 43%)"/>
+      <text x="${X(n-1)-4}" y="${Y(pts[n-1])-9}" text-anchor="end" fill="hsl(210 40% 98%)" font-size="10.5" font-family="ui-monospace,monospace">$1,017.82</text>`;
+  })();
+</script>
+</body>
+</html>
