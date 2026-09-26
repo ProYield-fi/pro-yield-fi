@@ -102,8 +102,9 @@ on-Arb: gas only (cents), no bridge fees.
 - `completeInbound` subtracts the received amount from `arbValue6` — the returned
   cash replaces the attested value 1:1, gains realized exactly once.
 - Guards: `ack ≤ inFlight`; `sync ≤ arrivedFace × (1+headroom)`; `maxFee ≤ $2`;
-  `min bridge $5`; burn recipient + return recipient IMMUTABLE; ops can only
-  buy/sell/burn — config + rescue are owner (Safe) only.
+  `min bridge $5`; burn recipient (outbound) IMMUTABLE; return recipient fixed at
+  deploy and correctable ONCE by owner pre-activity (`confirmStrategyReturn`),
+  then locked; ops can only buy/sell/burn — config + rescue are owner (Safe) only.
 
 ## Ops runbook (keeper)
 
