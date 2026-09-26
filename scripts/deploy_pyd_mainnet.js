@@ -222,10 +222,12 @@ async function main() {
   checks.push(["discount.feeDistributor", (await discount.feeDistributor()) === FEE_DISTRIBUTOR, await discount.feeDistributor()]);
   checks.push(["discount.vault", (await discount.vault()) === VAULT, await discount.vault()]);
   checks.push(["discount.owner == Safe", (await discount.owner()) === safe, await discount.owner()]);
-  const t0 = await discount.tiers(0);
-  const t3 = await discount.tiers(3);
-  checks.push(["tier0 = 1000 PYD / 500bps", t0[0] === 1000n * 10n ** 18n && t0[1] === 500n, `${t0[0]}/${t0[1]}`]);
-  checks.push(["tier3 = 1M PYD / 2000bps", t3[0] === 1000000n * 10n ** 18n && t3[1] === 2000n, `${t3[0]}/${t3[1]}`]);
+  const t0t = await discount.tiers(0, 0);
+  const t0b = await discount.tiers(0, 1);
+  const t3t = await discount.tiers(3, 0);
+  const t3b = await discount.tiers(3, 1);
+  checks.push(["tier0 = 1000 PYD / 500bps", t0t === 1000n * 10n ** 18n && t0b === 500n, `${t0t}/${t0b}`]);
+  checks.push(["tier3 = 1M PYD / 2000bps", t3t === 1000000n * 10n ** 18n && t3b === 2000n, `${t3t}/${t3b}`]);
 
   let allOk = true;
   for (const [name, ok, got] of checks) {
