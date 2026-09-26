@@ -298,7 +298,7 @@ async function main() {
       return;
     }
     console.log(`status ${msg.status} · message ${msg.message.slice(0, 20)}…`);
-    const tx = await strat.connect(signer).completeInbound(msg.message, msg.attestation, gp);
+    const tx = await strat.connect(signer).completeInbound(msg.message, msg.attestation, { ...gp, gasLimit: 550000n });
     await tx.wait();
     console.log(`completeInbound tx ${tx.hash} · strategy idle now ${await heUsdc.balanceOf(strategyAddr)}`);
     console.log(`retFace ${await strat.retFace6()} · totalAssets ${await strat.totalAssets()}`);
