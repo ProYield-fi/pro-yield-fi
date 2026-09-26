@@ -5,9 +5,10 @@
 # then vault.harvest() sweeps any bridged-back profit into the vault. HOLD runs
 # cost one syncCore tx and no money movement.
 #
-# Sizing: DN_TARGET_USD pins the demo notional. The policy target
-# (vault totalAssets × DN weight) only clears HL's $10 order minimum once TVL
-# ≥ $67 — drop the pin (or raise it) when real vault TVL exceeds that.
+# Sizing: DN_TARGET_USD pins the demo notional; 0 = policy sizing
+# (vault totalAssets × DN weight). The policy target only clears HL's $10
+# order minimum once TVL ≥ ~$67, so below that the sleeve stays dormant —
+# that is the designed behavior; do not re-pin.
 #
 # Exit codes from dn_keeper: 0 ok · 3 mismatch (alerted) · 4 margin/allocate
 # blocked. Logs via crontab redirect: ~/.hermes/logs/dn_keeper.log
@@ -19,7 +20,7 @@ export MAINNET_OK=1
 export DN_ALLOW_MAINNET=1
 export DN_EXECUTE=1
 export DN_STRATEGY="${DN_STRATEGY:-$(python3 -c "import json;print(json.load(open('deployed_addresses.mainnet.json'))['dn_core_strategy'])")}"
-export DN_TARGET_USD="${DN_TARGET_USD:-10.15}"
+export DN_TARGET_USD="${DN_TARGET_USD:-0}"
 export DN_MARGIN_UTIL_BPS="${DN_MARGIN_UTIL_BPS:-2050}"
 
 echo "=== $(date -u +%FT%TZ) dn_keeper mainnet (strategy ${DN_STRATEGY}) ==="
