@@ -37,10 +37,14 @@ Scenario math (Conservative inputs 4.1% lending / 11% funding / 12% PT):
   - Effect at current scale: none (sleeve dormant below HL minimums). Effect at TVL ≥ ~$40: sleeve deploys 25% instead of 15% — blended +≈0.7–1.2pp.
   - Gate: do it together with R2 so the tier preview numbers ship once, honestly.
 
-### R2 — PT fixed-rate sleeve (NEXT BUILD)
-- New adapter: Pendle PT buy-and-hold (Arb) — USDC → PT-sUSDAI/USDAI, hold to maturity, fixed yield.
-- Constraints: ≤15–20% of book; principal-safe construction (PT at discount, no leverage); Arb leg needs gas + a bridge path for capital (currently HyperEVM-only vault → needs the cross-chain sleeve design).
-- **Ships with**: the tier re-ladder (below). Until this exists, site tiers keep today's numbers.
+### R2 — PT fixed-rate sleeve (BUILT 2026-09-26 — deploy pending)
+- Real adapter built + forge-tested: `PTSleeveStrategy.sol` (HyperEVM) + `PTSleeveExecutor.sol`
+  (Arbitrum) + `PendleTypes.sol`; 31 new forge tests (suite 100/100); battery 12/12.
+  Bridge = Circle CCTP V2, **$0 both ways** (fast out / standard back) — the old $1 flat fee is gone.
+  See `docs/PT_SLEEVE_DESIGN.md` for addresses, selectors (4byte-verified), flows, accounting invariants.
+- Next gate (explicit): deploy executor (Arb) → strategy (HyperEVM) → Safe whitelist →
+  first small allocation (~10% of book) → watch one full loop (fund → buy → sync) before
+  the tier re-ladder ships.
 
 ### R3 — USD.AI class (DD FIRST, no build)
 - Credit-structured (borrower default risk is the yield source). Requires: audit review, custody/structure review, venue cap ≤15%, case-by-case.
