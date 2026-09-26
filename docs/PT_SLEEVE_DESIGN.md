@@ -1,8 +1,15 @@
 # PT fixed-rate sleeve — design + build record (2026-09-26)
 
-**Status: BUILT + UNIT/INTEGRATION-TESTED (forge 31/31 new, 100/100 suite).
-NOT yet deployed. Mainnet deploy + Safe wiring + first allocation are the next
-explicit gate (see bottom).**
+**Status: DEPLOYED + LIVE-VERIFIED 2026-09-26 (executor v2 + strategy v2 on
+mainnet; Curve hop added after the live SY rejected USDC — see v2 section at
+bottom). Tests: 35/35 PT file, 104/104 suite, battery 12/12, hardhat clean.**
+
+**v2 addresses (mainnet):**
+- `PTSleeveExecutor` (Arbitrum): `0xA2e535970dc1492f77843E26F25Ab314735F4dF5`
+  (owner = ops EOA pending an Arb Safe; ops = keeper key; return addr locked to strategy v2)
+- `PTSleeveStrategy` (HyperEVM): `0x2D3E5bf1D34791b8b66Ac4eEA6D281E918577B6b`
+  (keeper = ops EOA, owner = treasury Safe, vault linked, minBridge $2)
+- v1 pair (pre-Curve) archived in `deployed_addresses.*.v1-archive.json`.
 
 This is R2 from `docs/APY_RECOMMENDATIONS_PLAN.md`: a capped sleeve that buys
 Pendle **PT (principal token)** instruments on Arbitrum and holds them — a
@@ -122,10 +129,24 @@ Fixed ~10–12% + fee-free bridge. Drag = Arb gas (~$1–2/yr) + roll slippage
 $1-each-way bridge would have eaten ~20% of a $100 sleeve's yield — that was the
 blocker; CCTP removes it.
 
+## v2 update — the Curve hop (found live, fixed same day)
+
+The first live buy reverted `SYInvalidTokenIn(0xaf88… USDC)`: Pendle stable
+markets mint via their SY's accepted tokens (USDai / PYUSD here), never raw
+USDC. Fix: the executor hops **USDC → USDai on Curve**
+(`0x52a5b1a8…`, idx usdc=1/usdai=0, ~4bp) before the Pendle leg and reverses
+on sells; balance-delta accounting; all bounds unchanged. Deploy-order gotchas
+(strategy arbExecutor immutable → pair redeploy; return-address confirm-once;
+seed re-homing must mint to the deployer, not the strategy) are recorded in the
+skill reference `proyield-vault-pipeline/references/pt-sleeve.md`.
+
 ## Deploy gates (next, explicit)
 
-1. Deploy `PTSleeveExecutor` to Arbitrum (owner = treasury Safe `0x8A1b107e…`; ops = keeper key).
-2. Deploy `PTSleeveStrategy` to HyperEVM (owner/keeper as existing strategies; `arbExecutor` = (1)).
-3. Safe: whitelist/activate strategy; vault `allocate()` a SMALL first slice (e.g. 10% of book);
-   run the full loop once (fund → buy → sync → observe accrual) before the tier re-ladder ships.
-4. Site/feed: add the strategy to `write_vault_status.js` deployment reads when it holds value.
+1. ~~Deploy executor + strategy~~ ✅ DONE 2026-09-26 (v2 pair above).
+2. ~~Safe: whitelist/activate~~ ✅ addStrategy(v1)+deactivate(v1) executed;
+   v2 stays **outside the vault until it is vault-funded** (current slice is
+   ops-seeded; vault books stay clean at real == booked).
+3. Run the full loop once (fund → buy → sync → observe accrual → unwind →
+   return) before the tier re-ladder ships — IN PROGRESS (first buy live).
+4. Site/feed: add the strategy to `write_vault_status.js` deployment reads when
+   it holds VAULT value; tier re-ladder gated on that + loop proof.
