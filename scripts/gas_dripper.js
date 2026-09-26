@@ -21,7 +21,7 @@ const { execFileSync } = require("child_process");
 const { ethers } = require("ethers");
 
 const DRIP_ETH = process.env.DRIP_ETH || "0.0003";
-const DRIP_HYPE = process.env.DRIP_HYPE || "0.001";
+const DRIP_HYPE = process.env.DRIP_HYPE || "0.0004";
 const MAX_PER_RUN = Number(process.env.MAX_PER_RUN || 5);
 const RUN = process.env.RUN === "1";
 const KEY_FILE =
