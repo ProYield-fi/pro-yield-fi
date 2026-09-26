@@ -141,8 +141,9 @@ async function main() {
       const uid = String(r.user_id).replace(/'/g, "''");
       const b = JSON.stringify(breakdown).replace(/'/g, "''");
       d1(
-        `INSERT OR IGNORE INTO portfolio_snapshots (user_id, date, total_usd, breakdown) ` +
-          `VALUES ('${uid}', '${date}', ${Number(total).toFixed(6)}, '${b}')`
+        `INSERT INTO portfolio_snapshots (user_id, date, total_usd, breakdown) ` +
+          `VALUES ('${uid}', '${date}', ${Number(total).toFixed(6)}, '${b}') ` +
+          `ON CONFLICT(user_id, date) DO UPDATE SET total_usd = excluded.total_usd, breakdown = excluded.breakdown`
       );
       console.log(`  ok  ${r.address} → $${total.toFixed(2)}`);
       ok++;
