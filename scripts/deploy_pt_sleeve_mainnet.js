@@ -84,25 +84,47 @@ async function main() {
   const est = await raw.estimateGas(
     await Strategy.getDeployTransaction(USDC, deployer.address, TOKEN_MESSENGER, MESSAGE_TRANSMITTER, executor, DEST_DOMAIN)
   );
+  const gasPrice = BigInt(process.env.PT_GAS_PRICE_WEI || "150000000"); // 0.15 gwei
+  const latest = await raw.getBlock("latest");
   console.log(`deploy estimate: ${est} (limit 3,000,000 — headroom ${3_000_000n - est})`);
+  console.log(`gasPrice: ${gasPrice} wei · baseFee: ${latest.baseFeePerGas} wei`);
+  if (gasPrice < latest.baseFeePerGas) fail(`gasPrice below base fee`);
   if (est >= 2_990_000n) fail(`deploy estimate ${est} leaves <10k headroom — refusing`);
+  const overrides = { gasLimit: (est * 125n) / 100n, gasPrice };
 
-  const strategy = await Strategy.deploy(USDC, deployer.address, TOKEN_MESSENGER, MESSAGE_TRANSMITTER, executor, DEST_DOMAIN, {
-    gasLimit: 2_990_000n,
-  });
-  await strategy.waitForDeployment();
+  let strategy;
+  if (process.env.PT_EXISTING_STRATEGY) {
+    // Resume mode: attach to an already-deployed strategy (e.g. the follow-up
+    // config txs need to be re-run) without deploying again.
+    strategy = Strategy.attach(process.env.PT_EXISTING_STRATEGY);
+    console.log(`resume: attached to existing strategy ${process.env.PT_EXISTING_STRATEGY}`);
+  } else {
+    strategy = await Strategy.deploy(USDC, deployer.address, TOKEN_MESSENGER, MESSAGE_TRANSMITTER, executor, DEST_DOMAIN, overrides);
+    await strategy.waitForDeployment();
+    console.log(`PTSleeveStrategy deployed: ${await strategy.getAddress()} (tx ${strategy.deploymentTransaction().hash})`);
+  }
   const addr = await strategy.getAddress();
-  console.log(`PTSleeveStrategy deployed: ${addr} (tx ${strategy.deploymentTransaction().hash})`);
 
-  const keepTx = await strategy.setKeeper(deployer.address);
+  const feeOverrides = { gasPrice };
+  const keepTx = await strategy.setKeeper(deployer.address, feeOverrides);
   await keepTx.wait();
   console.log(`setKeeper(${deployer.address}) tx ${keepTx.hash}`);
 
-  const vaultTx = await strategy.setVault(vault);
+  const vaultTx = await strategy.setVault(vault, feeOverrides);
   await vaultTx.wait();
   console.log(`setVault(${vault}) tx ${vaultTx.hash}`);
 
-  const ownTx = await strategy.transferOwnership(SAFE);
+  // Optional: beta-scale bridge minimum, set during the deployer-owner window
+  // (before handover) — the floor guard in setParams is $2.
+  const minBridge = process.env.PT_MIN_BRIDGE_USD6;
+  if (minBridge) {
+    const headroom = process.env.PT_HEADROOM_BPS || 2000;
+    const paramsTx = await strategy.setParams(headroom, minBridge, feeOverrides);
+    await paramsTx.wait();
+    console.log(`setParams(headroomBps=${headroom}, minBridgeUsd6=${minBridge}) tx ${paramsTx.hash}`);
+  }
+
+  const ownTx = await strategy.transferOwnership(SAFE, feeOverrides);
   await ownTx.wait();
   console.log(`transferOwnership(${SAFE}) tx ${ownTx.hash}`);
 
@@ -112,12 +134,15 @@ async function main() {
   const vaultOnStrat = await strategy.vault();
   const arbExec = await strategy.arbExecutor();
   const domain = await strategy.destDomain();
+  const minB = await strategy.minBridgeUsd6();
+  const hr = await strategy.headroomBps();
   console.log("\n── verify ──");
   console.log(`  owner   = ${owner} ${owner.toLowerCase() === SAFE.toLowerCase() ? "✓" : "✗ MISMATCH"}`);
   console.log(`  keeper  = ${keeper} ${keeper.toLowerCase() === deployer.address.toLowerCase() ? "✓" : "✗ MISMATCH"}`);
   console.log(`  vault   = ${vaultOnStrat} ${vaultOnStrat.toLowerCase() === vault.toLowerCase() ? "✓" : "✗ MISMATCH"}`);
   console.log(`  arbExec = ${arbExec} ${arbExec.toLowerCase() === executor.toLowerCase() ? "✓" : "✗ MISMATCH"}`);
   console.log(`  domain  = ${domain} ${Number(domain) === DEST_DOMAIN ? "✓" : "✗ MISMATCH"}`);
+  console.log(`  params  = headroomBps ${hr} · minBridgeUsd6 ${minB}`);
   if (owner.toLowerCase() !== SAFE.toLowerCase()) fail("ownership handoff failed");
   if (arbExec.toLowerCase() !== executor.toLowerCase()) fail("arbExecutor mismatch on-chain");
 

@@ -31,6 +31,10 @@ const path = require("path");
 const USDC_ARB = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // native USDC, Arbitrum One
 const ROUTER = "0x888888888889758F76e7103c6CbF23ABbF58F946"; // Pendle Router v4
 const TOKEN_MESSENGER = "0x28b5a0e9C621a5BadaA536219b3a228C8168cf5d"; // CCTP V2
+const USDAI = "0x0a1a1a107e45b7ced86833863f482bc5f4ed82ef"; // USDai (Pendle SY leg token)
+const CURVE_POOL = "0x52a5b1a832a16c9275571e4bcdbe9b886853a90e"; // Curve USDC/USDai
+const CURVE_IDX_USDC = 1; // coin1 = USDC (6dp)
+const CURVE_IDX_USDAI = 0; // coin0 = USDai (18dp)
 const EXPECTED_DEPLOYER = process.env.EXPECTED_DEPLOYER || "0xaDD8f2678De34FD06C158DD80C5253A504A5EA1D";
 const MANIFEST = process.env.DEPLOY_MANIFEST || path.join(__dirname, "..", "deployed_addresses.arbitrum.json");
 
@@ -86,14 +90,14 @@ async function main() {
   }
 
   if (!SEND) {
-    console.log("\nDRY — would deploy PTSleeveExecutor(USDC_ARB, ROUTER, MESSENGER, strategyReturn, ops, owner);");
+    console.log("\nDRY — would deploy PTSleeveExecutor(USDC_ARB, ROUTER, MESSENGER, strategyReturn, ops, owner, USDAI, CURVE, idxUsdc, idxUsdai);");
     if (market && ptToken && owner === deployer.address) console.log(`then setMarket(${market}, ${ptToken}).`);
     console.log("Re-run with ARB_OK=1 to send.");
     return;
   }
 
   const Exec = await ethers.getContractFactory("PTSleeveExecutor");
-  const exec = await Exec.deploy(USDC_ARB, ROUTER, TOKEN_MESSENGER, strategy, ops, owner);
+  const exec = await Exec.deploy(USDC_ARB, ROUTER, TOKEN_MESSENGER, strategy, ops, owner, USDAI, CURVE_POOL, CURVE_IDX_USDC, CURVE_IDX_USDAI);
   await exec.waitForDeployment();
   const addr = await exec.getAddress();
   console.log(`PTSleeveExecutor deployed: ${addr} (tx ${exec.deploymentTransaction().hash})`);
@@ -113,6 +117,10 @@ async function main() {
     strategyReturn: await exec.strategyReturn(),
     ops: await exec.ops(),
     owner: await exec.owner(),
+    usdai: await exec.usdai(),
+    curve: await exec.curve(),
+    idxUsdc: await exec.curveIdxUsdc(),
+    idxUsdai: await exec.curveIdxUsdai(),
   };
   const wantStrategyReturn = "0x" + strategy.slice(2).toLowerCase().padStart(64, "0");
   console.log("\n── verify ──");
@@ -122,6 +130,9 @@ async function main() {
   console.log(`  return    = ${onchain.strategyReturn} ${onchain.strategyReturn.toLowerCase() === wantStrategyReturn.toLowerCase() ? "✓" : "✗ MISMATCH"}`);
   console.log(`  ops       = ${onchain.ops} ${onchain.ops.toLowerCase() === ops.toLowerCase() ? "✓" : "✗"}`);
   console.log(`  owner     = ${onchain.owner} ${onchain.owner.toLowerCase() === owner.toLowerCase() ? "✓" : "✗"}`);
+  console.log(`  usdai     = ${onchain.usdai} ${onchain.usdai.toLowerCase() === USDAI.toLowerCase() ? "✓" : "✗"}`);
+  console.log(`  curve     = ${onchain.curve} ${onchain.curve.toLowerCase() === CURVE_POOL.toLowerCase() ? "✓" : "✗"}`);
+  console.log(`  indices   = usdc ${onchain.idxUsdc} · usdai ${onchain.idxUsdai}`);
   if (onchain.strategyReturn.toLowerCase() !== wantStrategyReturn.toLowerCase()) fail("strategyReturn mismatch on-chain");
   if (onchain.router.toLowerCase() !== ROUTER.toLowerCase()) fail("router address mismatch");
 
